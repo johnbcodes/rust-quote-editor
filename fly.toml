@@ -1,5 +1,5 @@
-app = "jbc-axum-hotwire-demo"
-primary_region = "mia"
+app = "jbc-axum-hotwire"
+primary_region = "ord"
 
 kill_signal = "SIGINT"
 kill_timeout = 5
@@ -8,7 +8,7 @@ kill_timeout = 5
 PORT = "8080"
 
 [mounts]
-source = "jbc_ahd_data"
+source = "jbc_ah_data"
 destination = "/data"
 
 [[services]]
