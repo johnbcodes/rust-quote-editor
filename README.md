@@ -1,4 +1,4 @@
-# hotwire-turbo
+# axum-hotwire
 
 > Rust implementation of the [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails).
 
