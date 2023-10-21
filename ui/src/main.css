@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --color-text-header: 0deg 1% 16%;
+        --color-text-body: 0deg 5% 25%;
+        --color-text-muted: 0deg 1% 44%;
+        --color-primary: 350deg 67% 50%;
+        --color-primary-rotate: 10deg 73% 54%;
+        --color-primary-bg: 0deg 85% 96%;
+        --color-secondary: 101deg 45% 56%;
+        --color-secondary-rotate: 120deg 45% 56%;
+        --color-tertiary: 49deg 89% 64%;
+        --color-glint: 210deg 100% 82%;
+        --color-background: 30deg 50% 98%;
+        --color-light: 0deg 6% 93%;
+        --color-dark: 0deg 1% 16%;
+    }
+
+    a {
+        @apply text-primary no-underline [transition:color_200ms]
+    }
+
+    a:hover,
+    a:focus,
+    a:active {
+        @apply text-primary-rotate
+    }
+}
+
+@layer components {
+    .button {
+        @apply font-bold inline-block px-4 py-1.5 rounded-md bg-header bg-origin-border border-2 border-transparent border-solid no-underline cursor-pointer outline-none [transition:filter_400ms,color_200ms]
+    }
+
+    .button:hover,
+    .button:focus,
+    .button:focus-within,
+    .button:active {
+        @apply [transition:filter_250ms,color_200ms]
+    }
+
+    .button-prime {
+        @apply text-white bg-gradient-to-r from-primary to-primary-rotate
+    }
+
+    .button-prime:hover,
+    .button-prime:focus,
+    .button-prime:focus-within,
+    .button-prime:active {
+        @apply text-white saturate-[1.4] brightness-[1.15]
+    }
+
+    .button-secondary {
+        @apply text-white bg-gradient-to-r from-secondary to-secondary-rotate
+    }
+
+    .button-secondary:hover,
+    .button-secondary:focus,
+    .button-secondary:focus-within,
+    .button-secondary:active {
+        @apply text-white saturate-[1.2] brightness-110
+    }
+
+    .button-light {
+        @apply text-dark bg-light
+    }
+
+    .button-light:hover,
+    .button-light:focus,
+    .button-light:focus-within,
+    .button-light:active {
+        @apply brightness-[0.92]
+    }
+
+    .button-dark {
+        @apply text-white bg-dark border-dark
+    }
+
+    .button-dark:hover,
+    .button-dark:focus,
+    .button-dark:focus-within,
+    .button-dark:active {
+        @apply text-white
+    }
+
+    .visually-hidden {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+    }
+
+    .form-input {
+        @apply block w-full max-w-full px-2 py-1.5 rounded-md border-solid border-2 border-[hsl(0,6%,93%)] [outline:none] [transition:box-shadow_200ms] focus:shadow-[0_0_0_2px_hsl(210,100%,82%)]
+    }
+
+    input.error,
+    select.error,
+    textarea.error {
+        @apply border-primary
+    }
+}

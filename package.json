@@ -1,0 +1,21 @@
+{
+  "name": "axum-hotwire",
+  "version": "0.1.0",
+  "description": "",
+  "author": "",
+  "scripts": {
+    "build": "run-s build:preclean build:tailwind parcel:prepjs parcel:prephtml build:parcel",
+    "build:preclean": "rm -rf ui/target && rm -f templates/base.html && mkdir -p ui/target/build && mkdir -p ui/target/public",
+    "build:tailwind": "tailwindcss -i ui/src/main.css -o ui/target/build/main.css",
+    "parcel:prepjs": "rsync -a --prune-empty-dirs --include '*/' --include '*.js' --include '*.ico' --exclude '*' ui/src/ ui/target/build",
+    "build:parcel": "parcel build ui/target/build/base.html --public-url=/dist --dist-dir=ui/target/public/",
+    "parcel:prephtml": "cp ui/src/base.html ui/target/build/"
+  },
+  "devDependencies": {
+    "@hotwired/turbo": "7.3.0",
+    "@hotwired/stimulus": "3.2.2",
+    "npm-run-all": "4.1.5",
+    "parcel": "2.10.0",
+    "tailwindcss": "3.3.3"
+  }
+}

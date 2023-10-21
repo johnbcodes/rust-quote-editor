@@ -1,0 +1,8 @@
+/.DS_store
+/.idea
+/.parcel-cache
+/node_modules
+/target
+/ui/templates/base.html
+/ui/target
+/**/*.db*
