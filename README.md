@@ -86,3 +86,4 @@ Additionally, there were some other features and integral parts of Rails that ha
 * `fly auth docker`
 * `docker push registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
 * `fly deploy --image registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
+
