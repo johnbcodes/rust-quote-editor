@@ -1,6 +1,6 @@
 # hotwire-turbo
 
-> Rust implementation of the [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails) artifact.
+> Rust implementation of the [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails).
 
 ### Motivation and caveats
 
@@ -23,6 +23,7 @@ of the tutorial being left out:
 
 Additionally, there were some other features and integral parts of Rails that haven't been replicated yet:
 
+* The look and feel deviates from [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements
 * Viewports less than tablet sizing
 * "to_sentence" on ValidationErrors struct for flash message
 * Only add border color to fields with errors
