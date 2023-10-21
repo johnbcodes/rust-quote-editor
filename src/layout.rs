@@ -12,7 +12,7 @@ markup::define! {
             }
             body[class = "flex flex-col min-h-full bg-background text-body leading-[1.5]"] {
                 header[class = "flex items-center px-4 py-2 mb-10 bg-white shadow-[2px_4px_10px_hsl(0,0%,0%,0.1)]"] {
-                    div[class = "font-bold text-xl/[1.5] text-header"] { "KPMG" }
+                    div[class = "font-bold text-xl/[1.5] text-header"] { "ABC Corp" }
                     div[class = "font-bold ml-auto mr-3 text-header"] { "Accountant" }
                     a[class = "button button-dark", href = "#"] { "Sign out" }
                 }

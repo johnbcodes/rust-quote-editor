@@ -12,7 +12,7 @@ markup::define! {
         main[id = "container", class = "w-full px-4 py-0 mx-auto my-0 max-w-[60rem]"] {
             div[id = "header", class = "flex flex-wrap gap-3 justify-between mt-4 mb-8"] {
                 h1[class = "text-header text-[2rem]/[1.1] box-border m-0 p-0 font-bold"] {"Quotes"}
-                a[class = "button button-prime", "data-turbo-frame" = "quote_new", href = "/quotes/new"] { "New quote" }
+                a[class = "button button-prime", "data-turbo-frame" = "quote_new", href = "/quotes/new"] { "Add quote" }
             }
 
             $"turbo-frame"[id = "quote_new"] {}
