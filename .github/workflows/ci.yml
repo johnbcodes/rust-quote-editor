@@ -10,13 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Compile web artifacts
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      - run: npm run build
 
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Run cargo check
-        run: cargo check --verbose
+        run: cargo check
 
   test:
     name: Test Suite
@@ -24,6 +31,13 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+      - name: Compile web artifacts
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      - run: npm run build
 
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -37,6 +51,13 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v4
+
+      - name: Compile web artifacts
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.x'
+      - run: npm ci
+      - run: npm run build
 
       - name: Install toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
