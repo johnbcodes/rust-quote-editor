@@ -1,217 +1,130 @@
 use crate::{
-    currency::CurrencySql,
     line_items::model::{LineItem, LineItemForm},
-    time::DateTimeSql,
+    schema::{line_item_dates, line_items},
     Result,
 };
-use r2d2::{Pool, PooledConnection};
-use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{Row, Transaction};
-use tracing::info;
+use diesel::prelude::*;
+use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 
 pub(crate) async fn all_for_quote<S: AsRef<str>>(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     quote_id: S,
 ) -> Result<Vec<LineItem>> {
-    // language=SQL
-    let sql = r#"
-      select
-        li.id,
-        li.line_item_date_id,
-        li.name,
-        li.description,
-        li.quantity,
-        li.unit_price,
-        li.created_at,
-        li.updated_at
-      from line_items li
-        inner join line_item_dates lid on lid.id = li.line_item_date_id
-      where lid.quote_id = ?
-      order by li.rowid
-    "#;
-    let connection = pool.get()?;
-    let mut statement = connection.prepare_cached(sql)?;
-    let records = statement
-        .query_map([&quote_id.as_ref()], map_result)
-        .unwrap()
-        .map(|result| result.unwrap())
-        .collect();
+    let mut connection = pool.get()?;
+    let records = line_items::table
+        .inner_join(line_item_dates::table)
+        .select(LineItem::as_select())
+        .filter(line_item_dates::quote_id.eq(&quote_id.as_ref()))
+        .get_results(&mut connection)?;
+
     Ok(records)
 }
 
 pub(crate) async fn all_for_line_item_date<S: AsRef<str>>(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     line_item_date_id: S,
 ) -> Result<Vec<LineItem>> {
-    // language=SQL
-    let sql = r#"
-      select
-        id,
-        line_item_date_id,
-        name,
-        description,
-        quantity,
-        unit_price,
-        created_at,
-        updated_at
-      from line_items
-      where line_item_date_id = ?
-      order by rowid
-    "#;
-    let connection = pool.get()?;
-    let mut statement = connection.prepare_cached(sql)?;
-    let records = statement
-        .query_map([&line_item_date_id.as_ref()], map_result)
-        .unwrap()
-        .map(|result| result.unwrap())
-        .collect();
+    let mut connection = pool.get()?;
+    let records = line_items::table
+        .filter(line_items::line_item_date_id.eq(&line_item_date_id.as_ref()))
+        .get_results(&mut connection)?;
     Ok(records)
 }
 
 pub(crate) async fn read<S: AsRef<str>>(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     id: S,
 ) -> Result<LineItem> {
-    let connection = pool.get()?;
-    read_from_connection(&connection, id)
+    let mut connection = pool.get()?;
+    read_from_connection(&mut connection, id)
 }
 
 fn read_from_connection<S: AsRef<str>>(
-    connection: &PooledConnection<SqliteConnectionManager>,
+    connection: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
     id: S,
 ) -> Result<LineItem> {
-    // language=SQL
-    let sql = r#"
-      select
-        id,
-        line_item_date_id,
-        name,
-        description,
-        quantity,
-        unit_price,
-        created_at,
-        updated_at
-      from line_items
-      where id = ?
-    "#;
-    let mut statement = connection.prepare_cached(sql)?;
-    let record = statement.query_row([id.as_ref()], map_result)?;
+    let record = line_items::table
+        .filter(line_items::id.eq(&id.as_ref()))
+        .get_result(connection)?;
     Ok(record)
 }
 
 pub(crate) async fn insert(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     form: &LineItemForm,
 ) -> Result<LineItem> {
     let record: LineItem = form.into();
 
-    // language=SQL
-    let sql = r#"
-        insert into line_items
-            (id, line_item_date_id, name, description, quantity, unit_price, created_at, updated_at)
-        values
-            (?, ?, ?, ?, ?, ?, ?, ?);
-    "#;
-    let connection = pool.get()?;
-    let mut statement = connection.prepare_cached(sql)?;
-    statement.execute((
-        &record.id,
-        &record.line_item_date_id,
-        &record.name,
-        &record.description,
-        &record.quantity,
-        &CurrencySql(record.unit_price.clone()),
-        &DateTimeSql(record.created_at),
-        &DateTimeSql(record.updated_at),
-    ))?;
+    let mut connection = pool.get()?;
+    diesel::dsl::insert_into(line_items::table)
+        .values(&record)
+        .execute(&mut connection)?;
 
     Ok(record)
 }
 
 pub(crate) async fn update(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     form: &LineItemForm,
 ) -> Result<LineItem> {
     let record: LineItem = form.into();
-    info!("LineItem:\n{:?}", &record);
 
-    // language=SQL
-    let sql = r#"
-        update line_items
-            set name = ?,
-                description = ?,
-                quantity = ?,
-                unit_price = ?,
-                updated_at = ?
-        where id = ?;
-    "#;
-    let connection = pool.get()?;
-    let mut statement = connection.prepare_cached(sql)?;
-    statement.execute((
-        &record.name,
-        &record.description,
-        &record.quantity,
-        &CurrencySql(record.unit_price),
-        &DateTimeSql(record.updated_at),
-        &record.id,
-    ))?;
-    read_from_connection(&connection, &record.id)
+    let mut connection = pool.get()?;
+    diesel::dsl::update(line_items::table)
+        .set((
+            line_items::name.eq(&record.name),
+            line_items::description.eq(&record.description),
+            line_items::quantity.eq(&record.quantity),
+            line_items::unit_price.eq(&record.unit_price),
+            line_items::updated_at.eq(&record.updated_at),
+        ))
+        .filter(line_items::id.eq(&record.id))
+        .execute(&mut connection)?;
+
+    read_from_connection(&mut connection, &record.id)
 }
 
 pub(crate) async fn delete<S: AsRef<str>>(
-    pool: &Pool<SqliteConnectionManager>,
+    pool: &Pool<ConnectionManager<SqliteConnection>>,
     id: S,
 ) -> Result<LineItem> {
-    let record = read(pool, &id).await?;
-    // language=SQL
-    let sql = r#"delete from line_items where id = ?"#;
-    let connection = pool.get()?;
-    let mut statement = connection.prepare_cached(sql)?;
-    statement.execute([&id.as_ref()])?;
+    let mut connection = pool.get()?;
+    let record = read_from_connection(&mut connection, &id)?;
+
+    _ = diesel::dsl::delete(line_items::table)
+        .filter(line_items::id.eq(&id.as_ref()))
+        .execute(&mut connection)?;
+
     Ok(record)
 }
 
-pub(crate) fn delete_all_for_quote<S: AsRef<str>>(tx: &mut Transaction<'_>, id: S) -> Result {
-    // language=SQL
-    let sql = r#"
-        delete from line_items
-        where id in (
-          select
-            li.id
-          from line_items li
-            inner join line_item_dates lid on lid.id = li.line_item_date_id
-          where lid.quote_id = ?
-        );"#;
-    let mut statement = tx.prepare_cached(sql)?;
-    statement.execute([&id.as_ref()])?;
+pub(crate) fn delete_all_for_quote<S: AsRef<str>>(
+    tx: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
+    quote_id: S,
+) -> Result {
+    let line_items1 = diesel::alias!(line_items as line_items1);
+
+    _ = diesel::dsl::delete(line_items::table)
+        .filter(
+            line_items::id.eq_any(
+                line_items1
+                    .inner_join(line_item_dates::table)
+                    .select(line_items1.field(line_items::id))
+                    .filter(line_item_dates::quote_id.eq(&quote_id.as_ref())),
+            ),
+        )
+        .execute(tx)?;
+
     Ok(())
 }
 
-pub(crate) fn delete_all_for_date<S: AsRef<str>>(tx: &mut Transaction<'_>, id: S) -> Result {
-    // language=SQL
-    let sql = r#"
-        delete from line_items
-        where id in (
-          select
-            id
-          from line_items
-          where line_item_date_id = ?
-        );"#;
-    let mut statement = tx.prepare_cached(sql)?;
-    statement.execute([&id.as_ref()])?;
-    Ok(())
-}
+pub(crate) fn delete_all_for_date<S: AsRef<str>>(
+    tx: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
+    id: S,
+) -> Result {
+    _ = diesel::dsl::delete(line_items::table)
+        .filter(line_items::line_item_date_id.eq(&id.as_ref()))
+        .execute(tx)?;
 
-#[inline]
-fn map_result(row: &Row<'_>) -> rusqlite::Result<LineItem> {
-    Ok(LineItem {
-        id: row.get(0)?,
-        line_item_date_id: row.get(1)?,
-        name: row.get(2)?,
-        description: row.get(3)?,
-        quantity: row.get(4)?,
-        unit_price: row.get::<_, CurrencySql>(5)?.0,
-        created_at: row.get::<_, DateTimeSql>(6)?.0,
-        updated_at: row.get::<_, DateTimeSql>(7)?.0,
-    })
+    Ok(())
 }

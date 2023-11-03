@@ -14,16 +14,16 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
 };
+use diesel::prelude::SqliteConnection;
+use diesel::r2d2::{ConnectionManager, Pool};
 use hotwire_turbo_axum::TurboStream;
 use itertools::Itertools;
-use r2d2::Pool;
-use r2d2_sqlite::SqliteConnectionManager;
 use std::time::Instant;
 use tracing::info;
 use validator::Validate;
 
 pub(crate) async fn index(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
 ) -> Result<Html<String>> {
     let start = Instant::now();
     let quotes = quotes::query::all(&pool)
@@ -45,7 +45,7 @@ pub(crate) async fn index(
 }
 
 pub(crate) async fn show(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse> {
     let start = Instant::now();
@@ -98,7 +98,7 @@ pub(crate) async fn new() -> impl IntoResponse {
 }
 
 pub(crate) async fn create(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
     axum::Form(form): axum::Form<QuoteForm>,
 ) -> Result<impl IntoResponse> {
     let result = form.validate();
@@ -137,7 +137,7 @@ pub(crate) async fn create(
 }
 
 pub(crate) async fn edit(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
     Path(id): Path<String>,
 ) -> Result<impl IntoResponse> {
     let start = Instant::now();
@@ -155,7 +155,7 @@ pub(crate) async fn edit(
 }
 
 pub(crate) async fn update(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
     axum::Form(form): axum::Form<QuoteForm>,
 ) -> Result<impl IntoResponse> {
     let result = form.validate();
@@ -194,7 +194,7 @@ pub(crate) async fn update(
 }
 
 pub(crate) async fn delete(
-    State(pool): State<Pool<SqliteConnectionManager>>,
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
     axum::Form(form): axum::Form<DeleteForm>,
 ) -> Result<impl IntoResponse> {
     let start = Instant::now();

@@ -1,14 +1,31 @@
+use crate::schema::quotes;
 use currency_rs::Currency;
-use nanoid::nanoid;
+use diesel::prelude::*;
+use diesel::sql_types::*;
 use serde::Deserialize;
 use time::OffsetDateTime;
+use ulid::Ulid;
 use validator::Validate;
 
-#[derive(Debug)]
+#[derive(Debug, QueryableByName)]
+pub struct QuoteWithTotal {
+    #[diesel(sql_type = Text)]
+    pub id: String,
+    #[diesel(sql_type = Text)]
+    pub name: String,
+    #[diesel(sql_type = currency_rs::diesel2::sqlite::sql_types::Currency)]
+    pub total: Currency,
+    #[diesel(sql_type = TimestamptzSqlite)]
+    pub created_at: OffsetDateTime,
+    #[diesel(sql_type = TimestamptzSqlite)]
+    pub updated_at: OffsetDateTime,
+}
+
+#[derive(Debug, Insertable, Queryable)]
+#[diesel(table_name = quotes)]
 pub struct Quote {
     pub id: String,
     pub name: String,
-    pub total: Currency,
     pub created_at: OffsetDateTime,
     pub updated_at: OffsetDateTime,
 }
@@ -16,9 +33,8 @@ pub struct Quote {
 impl From<&QuoteForm> for Quote {
     fn from(value: &QuoteForm) -> Self {
         Quote {
-            id: value.id.clone().unwrap_or(nanoid!()),
+            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
             name: value.name.clone(),
-            total: Currency::new_float(0f64, None),
             created_at: OffsetDateTime::now_utc(),
             updated_at: OffsetDateTime::now_utc(),
         }
@@ -69,6 +85,16 @@ impl Default for QuotePresenter {
 
 impl From<Quote> for QuotePresenter {
     fn from(value: Quote) -> Self {
+        QuotePresenter {
+            id: Some(value.id),
+            name: value.name,
+            total: Currency::new_float(0f64, None),
+        }
+    }
+}
+
+impl From<QuoteWithTotal> for QuotePresenter {
+    fn from(value: QuoteWithTotal) -> Self {
         QuotePresenter {
             id: Some(value.id),
             name: value.name,

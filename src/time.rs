@@ -1,62 +1,10 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use rusqlite::types::{FromSql, FromSqlError, FromSqlResult, ToSql, ToSqlOutput, ValueRef};
-use rusqlite::Result;
-use time::{
-    format_description::{well_known::Rfc3339, FormatItem},
-    macros::format_description,
-    Date, OffsetDateTime,
-};
+use time::{format_description::FormatItem, macros::format_description, Date};
 
 pub(crate) static DATE_FORMAT: &[FormatItem<'_>] = format_description!("[year]-[month]-[day]");
 pub(crate) static DATE_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"[0-9]{4}-[0-9]{2}-[0-9]{2}$").unwrap());
-
-pub(crate) struct DateTimeSql(pub(crate) OffsetDateTime);
-
-impl FromSql for DateTimeSql {
-    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
-        String::column_result(value).and_then(|as_string| {
-            OffsetDateTime::parse(as_string.as_ref(), &Rfc3339)
-                .map(DateTimeSql)
-                .map_err(|err| FromSqlError::Other(Box::new(err)))
-        })
-    }
-}
-
-impl ToSql for DateTimeSql {
-    //noinspection DuplicatedCode
-    fn to_sql(&self) -> Result<ToSqlOutput> {
-        let time_string = self
-            .0
-            .format(&Rfc3339)
-            .map_err(|err| FromSqlError::Other(Box::new(err)))?;
-        Ok(ToSqlOutput::from(time_string))
-    }
-}
-
-pub(crate) struct DateSql(pub(crate) Date);
-
-impl FromSql for DateSql {
-    fn column_result(value: ValueRef) -> FromSqlResult<Self> {
-        String::column_result(value).and_then(|as_string| {
-            Date::parse(as_string.as_ref(), &DATE_FORMAT)
-                .map(DateSql)
-                .map_err(|err| FromSqlError::Other(Box::new(err)))
-        })
-    }
-}
-
-impl ToSql for DateSql {
-    //noinspection DuplicatedCode
-    fn to_sql(&self) -> Result<ToSqlOutput> {
-        let date_string = self
-            .0
-            .format(&DATE_FORMAT)
-            .map_err(|err| FromSqlError::Other(Box::new(err)))?;
-        Ok(ToSqlOutput::from(date_string))
-    }
-}
 
 pub(crate) fn long_form(date: Date) -> String {
     let mut result = String::with_capacity(18);
