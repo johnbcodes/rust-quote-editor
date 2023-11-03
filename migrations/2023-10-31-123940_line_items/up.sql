@@ -1,6 +1,6 @@
 create table line_items (
     id text not null primary key,
-    line_item_date_id integer not null,
+    line_item_date_id text not null,
     name text not null,
     description text,
     quantity integer not null,

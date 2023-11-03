@@ -1,13 +1,15 @@
 use crate::{
-    quotes::model::Quote,
+    quotes::model::QuoteWithTotal,
+    schema::line_item_dates,
     time::{long_form, parse_date, short_form, DATE_REGEX},
 };
-use nanoid::nanoid;
+use diesel::prelude::*;
 use serde::Deserialize;
 use time::{Date, OffsetDateTime};
+use ulid::Ulid;
 use validator::Validate;
 
-#[derive(Debug)]
+#[derive(Debug, Insertable, Queryable)]
 pub struct LineItemDate {
     pub id: String,
     pub quote_id: String,
@@ -20,7 +22,7 @@ impl From<&LineItemDateForm> for LineItemDate {
     fn from(value: &LineItemDateForm) -> Self {
         let date = parse_date(&value.date);
         LineItemDate {
-            id: value.id.clone().unwrap_or(nanoid!()),
+            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
             quote_id: value.quote_id.clone(),
             date,
             created_at: OffsetDateTime::now_utc(),
@@ -47,7 +49,7 @@ pub struct LineItemDatePresenter {
 }
 
 impl LineItemDatePresenter {
-    pub fn from_quote(quote: Quote) -> LineItemDatePresenter {
+    pub fn from_quote_with_total(quote: QuoteWithTotal) -> LineItemDatePresenter {
         LineItemDatePresenter {
             quote_id: quote.id,
             ..Default::default()

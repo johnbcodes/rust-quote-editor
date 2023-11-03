@@ -1,17 +1,19 @@
 use crate::currency::FORM_CURRENCY_REGEX;
+use crate::schema::line_items;
 use currency_rs::Currency;
-use nanoid::nanoid;
+use diesel::prelude::*;
 use serde::Deserialize;
 use time::OffsetDateTime;
+use ulid::Ulid;
 use validator::Validate;
 
-#[derive(Debug)]
+#[derive(Debug, Insertable, Queryable, Selectable)]
 pub(crate) struct LineItem {
     pub(crate) id: String,
     pub(crate) line_item_date_id: String,
     pub(crate) name: String,
     pub(crate) description: Option<String>,
-    pub(crate) quantity: u32,
+    pub(crate) quantity: i32,
     pub(crate) unit_price: Currency,
     pub(crate) created_at: OffsetDateTime,
     pub(crate) updated_at: OffsetDateTime,
@@ -26,7 +28,7 @@ impl From<&LineItemForm> for LineItem {
             Some(description)
         };
         LineItem {
-            id: value.id.clone().unwrap_or(nanoid!()),
+            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
             line_item_date_id: value.line_item_date_id.clone(),
             name: value.name.clone(),
             description,
@@ -50,7 +52,7 @@ pub(crate) struct LineItemForm {
     #[validate(length(min = 1, message = "can't be blank"))]
     pub(crate) name: String,
     pub(crate) description: Option<String>,
-    pub(crate) quantity: u32,
+    pub(crate) quantity: i32,
     #[validate(regex(path = "FORM_CURRENCY_REGEX"))]
     pub(crate) unit_price: String,
 }
