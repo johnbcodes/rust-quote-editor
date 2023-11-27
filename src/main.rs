@@ -24,7 +24,6 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use dotenvy::dotenv;
 use std::env;
-use tokio::net::TcpListener;
 use tower_http::trace::{DefaultOnResponse, TraceLayer};
 use tower_http::LatencyUnit;
 use tracing::{info, Level};
@@ -123,6 +122,6 @@ async fn main() {
 
     let addr: std::net::SocketAddr = "[::]:8080".parse().unwrap();
     info!("listening on {addr}");
-    let listener = TcpListener::bind(addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
