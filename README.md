@@ -73,8 +73,8 @@ Additionally, there were some other features and integral parts of Rails that ha
   * Update `primary_region` property in `fly.toml`
 * `fly volumes create <VOLUME-NAME> -s 1 -r <REGION>`
   * Update `mounts.source` property in `fly.toml` with <VOLUME-NAME>
-* `fly secrets set DATABASE_FILE=/data/demo.db`
-* `docker build -t registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER> .`
+* `fly secrets set DATABASE_URL=/data/demo.db`
+* `docker build -t registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER> --target deploy .`
 * `fly deploy --image registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
 
 ## Automated deployment of new versions with GitHub [action](.github/workflows/deploy.yml)
@@ -83,7 +83,7 @@ Additionally, there were some other features and integral parts of Rails that ha
   * Example: `git tag -a v2 -m "My new release!" && git push --tags`
 
 ## Manual deployment from local image
-* `docker build -t registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER> .`
+* `docker build -t registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER> --target deploy .`
 * `fly auth docker`
 * `docker push registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
 * `fly deploy --image registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
