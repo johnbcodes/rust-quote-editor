@@ -1,4 +1,4 @@
-app = "jbc-axum-hotwire"
+app = "jbc-quote-editor"
 primary_region = "ord"
 
 kill_signal = "SIGINT"

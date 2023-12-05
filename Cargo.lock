@@ -82,9 +82,9 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "axum"
-version = "0.7.1"
+version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "810a80b128d70e6ed2bdf3fe8ed72c0ae56f5f5948d01c2753282dd92a84fce8"
+checksum = "202651474fe73c62d9e0a56c6133f7a0ff1dc1c8cf7a5b03381af2a26553ac9d"
 dependencies = [
  "async-trait",
  "axum-core",
@@ -115,9 +115,9 @@ dependencies = [
 
 [[package]]
 name = "axum-core"
-version = "0.4.0"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de0ddc355eab88f4955090a823715df47acf0b7660aab7a69ad5ce6301ee3b73"
+checksum = "77cb22c689c44d4c07b0ab44ebc25d69d8ae601a2f28fb8d672d344178fa17aa"
 dependencies = [
  "async-trait",
  "bytes",
@@ -131,37 +131,6 @@ dependencies = [
  "sync_wrapper",
  "tower-layer",
  "tower-service",
-]
-
-[[package]]
-name = "axum-hotwire"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "convert_case",
- "currency_rs",
- "diesel",
- "diesel_migrations",
- "dotenvy",
- "hotwire-turbo",
- "hotwire-turbo-axum",
- "itertools",
- "libsqlite3-sys",
- "markup",
- "mime_guess",
- "once_cell",
- "regex",
- "rust-embed",
- "serde",
- "serde_json",
- "time",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "ulid",
- "validator",
 ]
 
 [[package]]
@@ -313,9 +282,9 @@ dependencies = [
 
 [[package]]
 name = "deranged"
-version = "0.3.9"
+version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0f32d04922c60427da6f9fef14d042d9edddef64cb9d4ce0d64d0685fbeb1fd3"
+checksum = "8eb30d70a07a3b04884d2677f06bec33509dc67ca60d92949e5535352d3191dc"
 dependencies = [
  "powerfmt",
  "serde",
@@ -1185,6 +1154,37 @@ dependencies = [
 ]
 
 [[package]]
+name = "rust-quote-editor"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "convert_case",
+ "currency_rs",
+ "diesel",
+ "diesel_migrations",
+ "dotenvy",
+ "hotwire-turbo",
+ "hotwire-turbo-axum",
+ "itertools",
+ "libsqlite3-sys",
+ "markup",
+ "mime_guess",
+ "once_cell",
+ "regex",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "time",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "ulid",
+ "validator",
+]
+
+[[package]]
 name = "rustc-demangle"
 version = "0.1.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1903,9 +1903,9 @@ checksum = "ed94fce61571a4006852b7389a063ab983c02eb1bb37b47f8272ce92d06d9538"
 
 [[package]]
 name = "winnow"
-version = "0.5.19"
+version = "0.5.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "829846f3e3db426d4cee4510841b71a8e58aa2a76b1132579487ae430ccd9c7b"
+checksum = "0383266b19108dfc6314a56047aa545a1b4d1be60e799b4dbdd407b56402704b"
 dependencies = [
  "memchr",
 ]

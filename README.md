@@ -1,6 +1,6 @@
-# axum-hotwire
+# rust-quote-editor
 
-> Rust implementation of the [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails).
+> Rust implementation of the quote editor from [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails).
 
 ### Motivation and caveats
 
@@ -15,15 +15,14 @@ motivation was a chance to investigate the following custom stack:
 * [Tailwind](https://tailwindcss.com/)
 * Other important crates
 
-Due to the motivations above and a lack of time there were some non-goals that resulted in some features
-of the tutorial being left out:
+Due to the motivations above and a lack of time some features of the tutorial were left out:
 
 * Broadcasting with WebSockets (Chapter 5)
 * Security (Chapter 6)
 
 Additionally, there were some other features and integral parts of Rails that haven't been replicated yet:
 
-* The look and feel deviates from [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements
+* The look and feel deviates from [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements that are not in the tutorial
 * Viewports less than tablet sizing
 * "to_sentence" on ValidationErrors struct for flash message
 * Only add border color to fields with errors
@@ -56,8 +55,8 @@ Additionally, there were some other features and integral parts of Rails that ha
 #### Docker only
 
 * Create volume with `docker volume create db-data`
-* Build with `docker build -t axum-hotwire .`
-* Run with `docker run -itd -e "DATABASE_URL=sqlite:///data/demo.db" -p 8080:8080 -v db-data:/data axum-hotwire`
+* Build with `docker build -t rust-quote-editor .`
+* Run with `docker run -itd -e "DATABASE_URL=sqlite:///data/demo.db" -p 8080:8080 -v db-data:/data rust-quote-editor`
 
 #### Docker Compose
 
