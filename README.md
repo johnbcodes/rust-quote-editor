@@ -27,6 +27,7 @@ Additionally, there were some other features and integral parts of Rails that ha
 * "to_sentence" on ValidationErrors struct for flash message
 * Only add border color to fields with errors
 * Labels for input fields
+* Delete confirmation
 * Probably a few others
 
 ## Getting Started

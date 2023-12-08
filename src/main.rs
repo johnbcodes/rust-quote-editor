@@ -81,6 +81,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { Redirect::to("/quotes") }))
         .route("/quotes", get(quotes::controller::index))
+        .route("/quotes/:id", get(quotes::controller::quote))
         .route("/quotes/show/:id", get(quotes::controller::show))
         .route("/quotes/new", get(quotes::controller::new))
         .route("/quotes/create", post(quotes::controller::create))
@@ -88,6 +89,10 @@ async fn main() {
         .route("/quotes/update", post(quotes::controller::update))
         .route("/quotes/delete", post(quotes::controller::delete))
         .route_service("/dist/*file", asset_handler.into_service())
+        .route(
+            "/line_item_dates/:id",
+            get(line_item_dates::controller::line_item_date),
+        )
         .route(
             "/line_item_dates/new/:quote_id",
             get(line_item_dates::controller::new),
@@ -112,6 +117,7 @@ async fn main() {
             "/line_items/new/:line_item_date_id",
             get(line_items::controller::new),
         )
+        .route("/line_items/:id", get(line_items::controller::line_item))
         .route("/line_items/create", post(line_items::controller::create))
         .route("/line_items/edit/:id", get(line_items::controller::edit))
         .route("/line_items/update", post(line_items::controller::update))
@@ -120,7 +126,7 @@ async fn main() {
         .layer(trace_layer)
         .fallback_service(asset_handler.into_service());
 
-    let addr: std::net::SocketAddr = "[::]:8080".parse().unwrap();
+    let addr: std::net::SocketAddr = "[::]:8081".parse().unwrap();
     info!("listening on {addr}");
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
     axum::serve(listener, app).await.unwrap();

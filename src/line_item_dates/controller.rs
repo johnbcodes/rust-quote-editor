@@ -2,22 +2,35 @@ use crate::{
     line_item_dates::{
         self,
         model::{DeleteForm, LineItemDateForm, LineItemDatePresenter},
-        view::{Create, Destroy, Form, Update},
+        view::{Create, Destroy, EditForm, LineItemDateInfo, NewForm, Update},
     },
     line_items::{self, model::LineItemPresenter},
     quotes, Result,
 };
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
     response::{Html, IntoResponse},
 };
 use diesel::prelude::SqliteConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
-use hotwire_turbo_axum::TurboStream;
 use std::time::Instant;
 use tracing::info;
 use validator::Validate;
+
+pub(crate) async fn line_item_date(
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
+    Path(id): Path<String>,
+) -> Result<impl IntoResponse> {
+    let start = Instant::now();
+    let record = line_item_dates::query::read(&pool, id).await?;
+    let duration = start.elapsed().as_micros();
+    info!("lid - read duration: {duration} μs");
+
+    let template = LineItemDateInfo {
+        line_item_date: &record.into(),
+    };
+    Ok(Html(template.to_string()))
+}
 
 pub(crate) async fn new(
     State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
@@ -31,10 +44,9 @@ pub(crate) async fn new(
     let duration = start.elapsed().as_micros();
     info!("lid - read duration: {duration} μs");
     Ok(Html(
-        Form {
+        NewForm {
             dom_id: &line_item_date.dom_id(),
             line_item_date: &line_item_date,
-            action: "create",
             error_message: None,
         }
         .to_string(),
@@ -52,7 +64,7 @@ pub(crate) async fn create(
             let line_item_date = line_item_dates::query::insert(&pool, &form).await?;
             let duration = start.elapsed().as_micros();
             info!("lid - insert duration: {duration} μs");
-            Ok(TurboStream(
+            Ok(Html(
                 Create {
                     line_item_date: &line_item_date.into(),
                     line_items: &Vec::new(),
@@ -66,19 +78,15 @@ pub(crate) async fn create(
             info!("ValidationErrors:\n{:?}", errors);
             let error_message = String::from("Test");
             let line_item_date: &LineItemDatePresenter = &form.into();
-            Ok((
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Html(
-                    Form {
-                        dom_id: &line_item_date.dom_id(),
-                        line_item_date,
-                        action: "create",
-                        error_message: Some(error_message),
-                    }
-                    .to_string(),
-                ),
+            Ok(Html(
+                NewForm {
+                    dom_id: &line_item_date.dom_id(),
+                    line_item_date,
+                    error_message: Some(error_message),
+                }
+                .to_string(),
             )
-                .into_response())
+            .into_response())
         }
     }
 }
@@ -93,10 +101,9 @@ pub(crate) async fn edit(
     info!("lid - read duration: {duration} μs");
     let line_item_date: &LineItemDatePresenter = &record.into();
     Ok(Html(
-        Form {
+        EditForm {
             dom_id: &line_item_date.edit_dom_id(),
             line_item_date,
-            action: "update",
             error_message: None,
         }
         .to_string(),
@@ -122,7 +129,7 @@ pub(crate) async fn update(
                 .collect::<Vec<LineItemPresenter>>();
             let duration = start.elapsed().as_micros();
             info!("li - read all duration: {duration} μs");
-            Ok(TurboStream(
+            Ok(Html(
                 Update {
                     line_item_date: &line_item_date.into(),
                     line_items: &line_items,
@@ -136,19 +143,15 @@ pub(crate) async fn update(
             info!("ValidationErrors:\n{:?}", errors);
             let error_message = String::from("Test");
             let line_item_date: &LineItemDatePresenter = &form.into();
-            Ok((
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Html(
-                    Form {
-                        dom_id: &line_item_date.edit_dom_id(),
-                        line_item_date,
-                        action: "update",
-                        error_message: Some(error_message),
-                    }
-                    .to_string(),
-                ),
+            Ok(Html(
+                EditForm {
+                    dom_id: &line_item_date.edit_dom_id(),
+                    line_item_date,
+                    error_message: Some(error_message),
+                }
+                .to_string(),
             )
-                .into_response())
+            .into_response())
         }
     }
 }
@@ -165,9 +168,8 @@ pub(crate) async fn delete(
     let quote = quotes::query::read(&pool, &line_item_date.quote_id).await?;
     let duration = start.elapsed().as_micros();
     info!("quo - read duration: {duration} μs");
-    Ok(TurboStream(
+    Ok(Html(
         Destroy {
-            line_item_date: &line_item_date.into(),
             quote: &quote.into(),
             message: "Date was successfully destroyed.",
         }
