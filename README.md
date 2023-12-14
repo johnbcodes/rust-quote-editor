@@ -4,18 +4,23 @@
 
 ### Motivation and caveats
 
-The primary motivation was to learn more about how [Hotwire Turbo](https://turbo.hotwired.dev/). Since
-no particular backend is required I wanted to see what it would take to integrate with Rust. A secondary
-motivation was a chance to investigate the following custom stack:
+The main motivation is learning to develop web applications with Rust and JavaScript combined. It now includes
+the following stack:
 
+* [htmx](https://htmx.org/)
+* [hyperscript](https://hyperscript.org/)
 * [Axum](https://github.com/tokio-rs/axum)
-* [Rusqlite](https://github.com/rusqlite/rusqlite)
+* [Diesel](https://diesel.rs/)
 * [markup.rs](https://github.com/utkarshkukreti/markup.rs)
-* Rust / NPM web builds/tooling
+* Custom Rust / NPM build integration
 * [Tailwind](https://tailwindcss.com/)
-* Other important crates
 
-Due to the motivations above and a lack of time some features of the tutorial were left out:
+In the past it included these technologies:
+
+* [Hotwire Turbo](https://turbo.hotwired.dev/)
+* [Rusqlite](https://github.com/rusqlite/rusqlite)
+
+Some features of the tutorial were intentionally left out and possibly will be worked on in the future:
 
 * Broadcasting with WebSockets (Chapter 5)
 * Security (Chapter 6)
@@ -24,9 +29,10 @@ Additionally, there were some other features and integral parts of Rails that ha
 
 * The look and feel deviates from [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements that are not in the tutorial
 * Viewports less than tablet sizing
-* "to_sentence" on ValidationErrors struct for flash message
+* Proper validation error messages ("to_sentence" on ValidationErrors struct for flash message)
 * Only add border color to fields with errors
 * Labels for input fields
+* Delete confirmation
 * Probably a few others
 
 ## Getting Started

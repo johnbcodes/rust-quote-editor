@@ -15,7 +15,6 @@ lto = true
 [dependencies]
 anyhow = "1.0"
 axum = "0.7"
-convert_case = "0.6"
 currency_rs = { git = "https://github.com/johnbcodes/currency_rs", branch = "feature/db-diesel2-sqlite", version = "1.1", features = [ "db-diesel2-sqlite" ] }
 diesel = { version = "2.1", features = ["r2d2", "sqlite", "time"] }
 diesel_migrations = "2.1"

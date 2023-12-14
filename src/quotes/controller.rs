@@ -1,22 +1,20 @@
 use crate::{
-    layout::Layout,
+    layout::{Flash, Layout},
     line_item_dates::{self, model::LineItemDatePresenter},
     line_items::{self, model::LineItemPresenter},
     quotes::{
         self,
         model::{DeleteForm, QuoteForm, QuotePresenter},
-        view::{Create, Destroy, Form, Index, Show, Update},
+        view::{Create, EditForm, Index, NewForm, Quote, Show, Update},
     },
     Result,
 };
 use axum::{
     extract::{Path, State},
-    http::StatusCode,
     response::{Html, IntoResponse},
 };
 use diesel::prelude::SqliteConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
-use hotwire_turbo_axum::TurboStream;
 use itertools::Itertools;
 use std::time::Instant;
 use tracing::info;
@@ -38,10 +36,25 @@ pub(crate) async fn index(
         head: markup::new! {
             title { "Quotes" }
         },
-        body: Index { quotes: &quotes },
+        body: Index { quotes },
     };
 
     Ok(Html(template.to_string()))
+}
+
+pub(crate) async fn quote(
+    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
+    Path(id): Path<String>,
+) -> Result<impl IntoResponse> {
+    let start = Instant::now();
+    let quote = quotes::query::read(&pool, &id).await?;
+    let duration = start.elapsed().as_micros();
+    info!("quo - read duration: {duration} μs");
+
+    let quote = Quote {
+        quote: &quote.into(),
+    };
+    Ok(Html(quote.to_string()))
 }
 
 pub(crate) async fn show(
@@ -88,9 +101,8 @@ pub(crate) async fn show(
 
 pub(crate) async fn new() -> impl IntoResponse {
     Html(
-        Form {
+        NewForm {
             quote: &QuotePresenter::default(),
-            action: "create",
             error_message: None,
         }
         .to_string(),
@@ -108,7 +120,7 @@ pub(crate) async fn create(
             let quote = quotes::query::insert(&pool, &form).await?;
             let duration = start.elapsed().as_micros();
             info!("quo - insert duration: {duration} μs");
-            Ok(TurboStream(
+            Ok(Html(
                 Create {
                     quote: &quote.into(),
                     message: "Quote was successfully created.",
@@ -120,18 +132,14 @@ pub(crate) async fn create(
         Err(errors) => {
             info!("ValidationErrors:\n{:?}", errors);
             let error_message = String::from("Test");
-            Ok((
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Html(
-                    Form {
-                        quote: &form.into(),
-                        action: "create",
-                        error_message: Some(error_message),
-                    }
-                    .to_string(),
-                ),
+            Ok(Html(
+                NewForm {
+                    quote: &form.into(),
+                    error_message: Some(error_message),
+                }
+                .to_string(),
             )
-                .into_response())
+            .into_response())
         }
     }
 }
@@ -145,9 +153,8 @@ pub(crate) async fn edit(
     let duration = start.elapsed().as_micros();
     info!("quo - read duration: {duration} μs");
     Ok(Html(
-        Form {
+        EditForm {
             quote: &quote.into(),
-            action: "update",
             error_message: None,
         }
         .to_string(),
@@ -165,7 +172,7 @@ pub(crate) async fn update(
             let quote = quotes::query::update(&pool, &form).await?;
             let duration = start.elapsed().as_micros();
             info!("quo - update duration: {duration} μs");
-            Ok(TurboStream(
+            Ok(Html(
                 Update {
                     quote: &quote.into(),
                     message: "Quote was successfully updated.",
@@ -177,18 +184,14 @@ pub(crate) async fn update(
         Err(errors) => {
             info!("ValidationErrors:\n{:?}", errors);
             let error_message = String::from("Test");
-            Ok((
-                StatusCode::UNPROCESSABLE_ENTITY,
-                Html(
-                    Form {
-                        quote: &form.into(),
-                        action: "update",
-                        error_message: Some(error_message),
-                    }
-                    .to_string(),
-                ),
+            Ok(Html(
+                EditForm {
+                    quote: &form.into(),
+                    error_message: Some(error_message),
+                }
+                .to_string(),
             )
-                .into_response())
+            .into_response())
         }
     }
 }
@@ -198,12 +201,11 @@ pub(crate) async fn delete(
     axum::Form(form): axum::Form<DeleteForm>,
 ) -> Result<impl IntoResponse> {
     let start = Instant::now();
-    let quote = quotes::query::delete(&pool, &form.id).await?;
+    quotes::query::delete(&pool, &form.id).await?;
     let duration = start.elapsed().as_micros();
     info!("quo - delete duration: {duration} μs");
-    Ok(TurboStream(
-        Destroy {
-            quote: &quote.into(),
+    Ok(Html(
+        Flash {
             message: "Quote was successfully destroyed.",
         }
         .to_string(),

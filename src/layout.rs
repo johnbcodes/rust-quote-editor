@@ -16,19 +16,16 @@ markup::define! {
                     div[class = "font-bold ml-auto mr-3 text-header"] { "Accountant" }
                     a[class = "button button-dark", href = "#"] { "Sign out" }
                 }
-                div[id = "flash", class = "fixed top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 m-w-full w-max px-4 py-0"] {
-                    @Flash{ message: None }
-                }
+                div[id = "flash", class = "fixed top-20 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 m-w-full w-max px-4 py-0"] {}
                 @body
             }
         }
     }
 
-    Flash<'a>(message: Option<&'a str>) {
-        @if let Some(message) = message {
+    Flash<'a>(message: &'a str) {
+        div[id = "flash", "hx-swap-oob" = "innerHTML"] {
             div[class = "text-[0.875rem] text-white px-4 py-2 bg-dark rounded-full animate-appear-then-fade",
-                "data-controller" = "removals",
-                "data-action" = "animationend->removals#remove"] {
+                "_" = "on animationend remove me"] {
                 @message
             }
         }

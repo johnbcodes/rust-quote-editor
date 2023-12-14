@@ -49,7 +49,7 @@ pub(crate) struct QuoteForm {
     pub(crate) name: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct QuotePresenter {
     pub id: Option<String>,
     pub name: String,
@@ -66,10 +66,6 @@ impl QuotePresenter {
 
     pub fn dom_id(&self) -> String {
         format!("quote_{}", &self.id())
-    }
-
-    pub fn total_dom_id(&self) -> String {
-        format!("quote_total_{}", &self.id())
     }
 }
 
