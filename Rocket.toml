@@ -1,0 +1,13 @@
+[default]
+log_level = "debug"
+
+[default.databases.demo]
+url = "data/demo.db"
+timeout = 10
+
+[docker]
+address = "0.0.0.0"
+
+[docker.databases.demo]
+url = "/data/demo.db"
+timeout = 10

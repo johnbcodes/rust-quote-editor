@@ -1,19 +1,14 @@
-use axum::{
-    http::StatusCode,
-    response::{IntoResponse, Response},
+use rocket::{
+    response::{Debug, Responder, Result},
+    Request,
 };
 
 // Make our own error that wraps `anyhow::Error`.
 pub(crate) struct AppError(anyhow::Error);
 
-// Tell axum how to convert `AppError` into a response.
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Something went wrong: {}", self.0),
-        )
-            .into_response()
+impl<'r> Responder<'r, 'r> for AppError {
+    fn respond_to(self, request: &Request<'_>) -> Result<'r> {
+        Debug(self.0).respond_to(request)
     }
 }
 

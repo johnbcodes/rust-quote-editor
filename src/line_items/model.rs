@@ -1,11 +1,11 @@
-use crate::currency::FORM_CURRENCY_REGEX;
-use crate::schema::line_items;
+use crate::{
+    forms::{validate_amount, validate_quantity},
+    schema::line_items,
+};
 use currency_rs::Currency;
 use diesel::prelude::*;
-use serde::Deserialize;
 use time::OffsetDateTime;
 use ulid::Ulid;
-use validator::Validate;
 
 #[derive(Debug, Insertable, Queryable, Selectable)]
 pub(crate) struct LineItem {
@@ -19,8 +19,9 @@ pub(crate) struct LineItem {
     pub(crate) updated_at: OffsetDateTime,
 }
 
-impl From<&LineItemForm> for LineItem {
-    fn from(value: &LineItemForm) -> Self {
+// FIXME: Should be TryFrom due to potential bad parse from quantity
+impl From<&EditLineItemForm> for LineItem {
+    fn from(value: &EditLineItemForm) -> Self {
         let description = value.description.clone().unwrap_or(String::from(""));
         let description = if description.is_empty() {
             None
@@ -28,11 +29,11 @@ impl From<&LineItemForm> for LineItem {
             Some(description)
         };
         LineItem {
-            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
+            id: value.id.clone(),
             line_item_date_id: value.line_item_date_id.clone(),
             name: value.name.clone(),
             description,
-            quantity: value.quantity,
+            quantity: value.quantity.parse::<i32>().unwrap_or(0),
             unit_price: Currency::new_string(value.unit_price.as_str(), None)
                 .unwrap_or(Currency::new_float(0f64, None)),
             created_at: OffsetDateTime::now_utc(),
@@ -41,19 +42,58 @@ impl From<&LineItemForm> for LineItem {
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
-pub(crate) struct LineItemForm {
-    #[validate(length(min = 1, message = "can't be blank"))]
-    pub(crate) id: Option<String>,
-    #[validate(length(min = 1, message = "can't be blank"))]
+// FIXME: Should be TryFrom due to potential bad parse from quantity
+impl From<&NewLineItemForm> for LineItem {
+    fn from(value: &NewLineItemForm) -> Self {
+        let description = value.description.clone().unwrap_or(String::from(""));
+        let description = if description.is_empty() {
+            None
+        } else {
+            Some(description)
+        };
+        LineItem {
+            id: Ulid::new().to_string(),
+            line_item_date_id: value.line_item_date_id.clone(),
+            name: value.name.clone(),
+            description,
+            quantity: value.quantity.parse::<i32>().unwrap_or(0),
+            unit_price: Currency::new_string(value.unit_price.as_str(), None)
+                .unwrap_or(Currency::new_float(0f64, None)),
+            created_at: OffsetDateTime::now_utc(),
+            updated_at: OffsetDateTime::now_utc(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct EditLineItemForm {
+    #[field(validate = len(1..))]
+    pub(crate) id: String,
+    #[field(validate = len(1..))]
     pub(crate) line_item_date_id: String,
-    #[validate(length(min = 1, message = "can't be blank"))]
+    #[field(validate = len(1..))]
     pub(crate) quote_id: String,
-    #[validate(length(min = 1, message = "can't be blank"))]
+    #[field(validate = len(1..).or_else(msg!("Please enter a name")))]
     pub(crate) name: String,
     pub(crate) description: Option<String>,
-    pub(crate) quantity: i32,
-    #[validate(regex(path = "FORM_CURRENCY_REGEX"))]
+    #[field(validate = validate_quantity())]
+    pub(crate) quantity: String,
+    #[field(validate = validate_amount())]
+    pub(crate) unit_price: String,
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct NewLineItemForm {
+    #[field(validate = len(1..))]
+    pub(crate) line_item_date_id: String,
+    #[field(validate = len(1..))]
+    pub(crate) quote_id: String,
+    #[field(validate = len(1..).or_else(msg!("Please enter a name")))]
+    pub(crate) name: String,
+    pub(crate) description: Option<String>,
+    #[field(validate = validate_quantity())]
+    pub(crate) quantity: String,
+    #[field(validate = validate_amount())]
     pub(crate) unit_price: String,
 }
 
@@ -107,12 +147,12 @@ impl From<LineItem> for LineItemPresenter {
     }
 }
 
-impl From<LineItemForm> for LineItemPresenter {
-    fn from(value: LineItemForm) -> Self {
+impl From<EditLineItemForm> for LineItemPresenter {
+    fn from(value: EditLineItemForm) -> Self {
         let unit_price = Currency::new_string(value.unit_price.as_str(), None)
             .unwrap_or(Currency::new_float(0f64, None));
         LineItemPresenter {
-            id: value.id,
+            id: Some(value.id),
             line_item_date_id: value.line_item_date_id,
             name: value.name,
             description: value.description.unwrap_or(String::from("")),
@@ -122,7 +162,22 @@ impl From<LineItemForm> for LineItemPresenter {
     }
 }
 
-#[derive(Debug, Deserialize)]
+impl From<NewLineItemForm> for LineItemPresenter {
+    fn from(value: NewLineItemForm) -> Self {
+        let unit_price = Currency::new_string(value.unit_price.as_str(), None)
+            .unwrap_or(Currency::new_float(0f64, None));
+        LineItemPresenter {
+            id: None,
+            line_item_date_id: value.line_item_date_id,
+            name: value.name,
+            description: value.description.unwrap_or(String::from("")),
+            quantity: value.quantity.to_string(),
+            unit_price,
+        }
+    }
+}
+
+#[derive(Debug, FromForm)]
 pub(crate) struct DeleteForm {
     pub(crate) id: String,
 }

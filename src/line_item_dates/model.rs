@@ -1,13 +1,12 @@
 use crate::{
+    forms::validate_date,
     quotes::model::QuoteWithTotal,
     schema::line_item_dates,
-    time::{long_form, parse_date, short_form, DATE_REGEX},
+    time::{long_form, parse_date, short_form},
 };
 use diesel::prelude::*;
-use serde::Deserialize;
 use time::{Date, OffsetDateTime};
 use ulid::Ulid;
-use validator::Validate;
 
 #[derive(Debug, Insertable, Queryable)]
 pub struct LineItemDate {
@@ -18,11 +17,11 @@ pub struct LineItemDate {
     pub updated_at: OffsetDateTime,
 }
 
-impl From<&LineItemDateForm> for LineItemDate {
-    fn from(value: &LineItemDateForm) -> Self {
+impl From<&EditLineItemDateForm> for LineItemDate {
+    fn from(value: &EditLineItemDateForm) -> Self {
         let date = parse_date(&value.date);
         LineItemDate {
-            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
+            id: value.id.clone(),
             quote_id: value.quote_id.clone(),
             date,
             created_at: OffsetDateTime::now_utc(),
@@ -31,14 +30,35 @@ impl From<&LineItemDateForm> for LineItemDate {
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
-pub(crate) struct LineItemDateForm {
-    #[validate(length(min = 1, message = "can't be blank"))]
-    pub(crate) id: Option<String>,
-    #[validate(length(min = 1, message = "can't be blank"))]
-    pub(crate) quote_id: String,
-    #[validate(regex(path = "DATE_REGEX"))]
-    pub(crate) date: String,
+impl From<&NewLineItemDateForm> for LineItemDate {
+    fn from(value: &NewLineItemDateForm) -> Self {
+        let date = parse_date(&value.date);
+        LineItemDate {
+            id: Ulid::new().to_string(),
+            quote_id: value.quote_id.clone(),
+            date,
+            created_at: OffsetDateTime::now_utc(),
+            updated_at: OffsetDateTime::now_utc(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct EditLineItemDateForm {
+    #[field(validate = len(1..))]
+    pub id: String,
+    #[field(validate = len(1..))]
+    pub quote_id: String,
+    #[field(validate = validate_date())]
+    pub date: String,
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct NewLineItemDateForm {
+    #[field(validate = len(1..))]
+    pub quote_id: String,
+    #[field(validate = validate_date())]
+    pub date: String,
 }
 
 #[derive(Debug, Default)]
@@ -96,18 +116,29 @@ impl From<LineItemDate> for LineItemDatePresenter {
     }
 }
 
-impl From<LineItemDateForm> for LineItemDatePresenter {
-    fn from(value: LineItemDateForm) -> Self {
+impl From<EditLineItemDateForm> for LineItemDatePresenter {
+    fn from(value: EditLineItemDateForm) -> Self {
         let date = parse_date(&value.date);
         LineItemDatePresenter {
-            id: value.id,
+            id: Some(value.id),
             quote_id: value.quote_id,
             date: Some(date),
         }
     }
 }
 
-#[derive(Debug, Deserialize)]
+impl From<NewLineItemDateForm> for LineItemDatePresenter {
+    fn from(value: NewLineItemDateForm) -> Self {
+        let date = parse_date(&value.date);
+        LineItemDatePresenter {
+            id: None,
+            quote_id: value.quote_id,
+            date: Some(date),
+        }
+    }
+}
+
+#[derive(Debug, FromForm)]
 pub(crate) struct DeleteForm {
     pub(crate) id: String,
 }

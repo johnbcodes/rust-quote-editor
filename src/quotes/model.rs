@@ -2,10 +2,8 @@ use crate::schema::quotes;
 use currency_rs::Currency;
 use diesel::prelude::*;
 use diesel::sql_types::*;
-use serde::Deserialize;
 use time::OffsetDateTime;
 use ulid::Ulid;
-use validator::Validate;
 
 #[derive(Debug, QueryableByName)]
 pub struct QuoteWithTotal {
@@ -30,10 +28,10 @@ pub struct Quote {
     pub updated_at: OffsetDateTime,
 }
 
-impl From<&QuoteForm> for Quote {
-    fn from(value: &QuoteForm) -> Self {
+impl From<&NewQuoteForm> for Quote {
+    fn from(value: &NewQuoteForm) -> Self {
         Quote {
-            id: value.id.clone().unwrap_or(Ulid::new().to_string()),
+            id: Ulid::new().to_string(),
             name: value.name.clone(),
             created_at: OffsetDateTime::now_utc(),
             updated_at: OffsetDateTime::now_utc(),
@@ -41,11 +39,28 @@ impl From<&QuoteForm> for Quote {
     }
 }
 
-#[derive(Debug, Deserialize, Validate)]
-pub(crate) struct QuoteForm {
-    #[validate(length(min = 1, message = "can't be blank"))]
-    pub(crate) id: Option<String>,
-    #[validate(length(min = 1, message = "Can't be blank"))]
+impl From<&EditQuoteForm> for Quote {
+    fn from(value: &EditQuoteForm) -> Self {
+        Quote {
+            id: value.id.clone(),
+            name: value.name.clone(),
+            created_at: OffsetDateTime::now_utc(),
+            updated_at: OffsetDateTime::now_utc(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct NewQuoteForm {
+    #[field(validate = len(1..).or_else(msg!("Please enter a name")))]
+    pub(crate) name: String,
+}
+
+#[derive(Clone, Debug, FromForm)]
+pub struct EditQuoteForm {
+    #[field(validate = len(1..))]
+    pub(crate) id: String,
+    #[field(validate = len(1..).or_else(msg!("Please enter a name")))]
     pub(crate) name: String,
 }
 
@@ -99,17 +114,27 @@ impl From<QuoteWithTotal> for QuotePresenter {
     }
 }
 
-impl From<QuoteForm> for QuotePresenter {
-    fn from(value: QuoteForm) -> Self {
+impl From<NewQuoteForm> for QuotePresenter {
+    fn from(value: NewQuoteForm) -> Self {
         QuotePresenter {
-            id: value.id,
+            id: None,
             name: value.name,
             total: Currency::new_float(0f64, None),
         }
     }
 }
 
-#[derive(Debug, Deserialize)]
+impl From<EditQuoteForm> for QuotePresenter {
+    fn from(value: EditQuoteForm) -> Self {
+        QuotePresenter {
+            id: Some(value.id),
+            name: value.name,
+            total: Currency::new_float(0f64, None),
+        }
+    }
+}
+
+#[derive(Clone, Debug, FromForm)]
 pub(crate) struct DeleteForm {
     pub(crate) id: String,
 }

@@ -2,191 +2,187 @@ use crate::{
     line_item_dates,
     line_items::{
         self,
-        model::{DeleteForm, LineItemForm, LineItemPresenter},
-        view::{Create, Destroy, EditForm, LineItem, NewForm, Update},
+        model::{DeleteForm, EditLineItemForm, LineItemPresenter, NewLineItemForm},
+        view::*,
     },
-    quotes, Result,
+    quotes,
+    rocket_ext::HtmxResponder,
+    Db, Result,
 };
-use axum::{
-    extract::{Path, State},
-    response::{Html, IntoResponse},
+use rocket::{
+    fairing::AdHoc,
+    form::{Contextual, Form},
+    http::Header,
+    response::content::RawHtml,
 };
-use diesel::prelude::SqliteConnection;
-use diesel::r2d2::{ConnectionManager, Pool};
-use std::time::Instant;
-use tracing::info;
-use validator::Validate;
 
-pub(crate) async fn line_item(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    Path(id): Path<String>,
-) -> Result<impl IntoResponse> {
-    let start = Instant::now();
-    let line_item = line_items::query::read(&pool, id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("li  - read duration: {duration} μs");
+pub(crate) fn stage() -> AdHoc {
+    AdHoc::on_ignite("LineItem Stage", |rocket| async {
+        rocket.mount(
+            "/line_items",
+            routes![line_item, new, create, edit, update, delete],
+        )
+    })
+}
+
+#[get("/<id>")]
+async fn line_item(db: Db, id: String) -> Result<RawHtml<String>> {
+    let line_item = db
+        .run(move |conn| {
+            let line_item = line_items::query::read(conn, id)?;
+            Result::Ok(line_item)
+        })
+        .await?;
 
     let template = LineItem {
         line_item: &line_item.into(),
     };
-    Ok(Html(template.to_string()))
+    Ok(RawHtml(template.to_string()))
 }
 
-pub(crate) async fn new(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    Path(line_item_date_id): Path<String>,
-) -> Result<impl IntoResponse> {
-    let start = Instant::now();
-    let quote = quotes::query::from_line_item_date_id(&pool, &line_item_date_id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("lid - read duration: {duration} μs");
-    Ok(Html(
+#[get("/new/<line_item_date_id>")]
+async fn new(db: Db, line_item_date_id: String) -> Result<RawHtml<String>> {
+    let lid_id = line_item_date_id.clone();
+    let quote = db
+        .run(move |conn| {
+            let quote = quotes::query::from_line_item_date_id(conn, &lid_id)?;
+            Result::Ok(quote)
+        })
+        .await?;
+
+    Ok(RawHtml(
         NewForm {
             line_item: &LineItemPresenter::from_line_item_date(line_item_date_id),
             quote: &quote.into(),
-            error_message: None,
         }
         .to_string(),
     ))
 }
 
-pub(crate) async fn create(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    axum::Form(form): axum::Form<LineItemForm>,
-) -> Result<impl IntoResponse> {
-    let result = form.validate();
-    match result {
-        Ok(_) => {
-            let start = Instant::now();
-            let line_item = line_items::query::insert(&pool, &form).await?;
-            let duration = start.elapsed().as_micros();
-            info!("li  - insert duration: {duration} μs");
-            let start = Instant::now();
-            let quote = quotes::query::read(&pool, &form.quote_id).await?;
-            let duration = start.elapsed().as_micros();
-            info!("quo - read duration: {duration} μs");
-            Ok(Html(
-                Create {
-                    line_item: &line_item.into(),
-                    quote: &quote.into(),
-                    message: "Item was successfully created.",
-                }
-                .to_string(),
-            )
-            .into_response())
+#[post("/create", data = "<form>")]
+async fn create(db: Db, form: Form<Contextual<'_, NewLineItemForm>>) -> Result<HtmxResponder> {
+    print!("Form:\n{form:?}");
+    match form.value {
+        Some(ref li_form) => {
+            let quote_id = li_form.quote_id.clone();
+            let li_form = li_form.clone();
+            let line_item = db
+                .run(move |conn| {
+                    let line_item = line_items::query::insert(conn, &li_form)?;
+                    Result::Ok(line_item)
+                })
+                .await?;
+
+            let quote = db
+                .run(move |conn| {
+                    let quote = quotes::query::read(conn, &quote_id)?;
+                    Result::Ok(quote)
+                })
+                .await?;
+
+            let content = Create {
+                line_item: &line_item.into(),
+                quote: &quote.into(),
+                message: "Item was successfully created.",
+            }
+            .to_string();
+
+            Ok(HtmxResponder::Ok(content))
         }
-        Err(errors) => {
-            info!("ValidationErrors:\n{:?}", errors);
-            let start = Instant::now();
-            let quote = quotes::query::read(&pool, &form.quote_id).await?;
-            let duration = start.elapsed().as_micros();
-            info!("quo - read duration: {duration} μs");
-            let error_message = String::from("Test");
-            Ok(Html(
-                NewForm {
-                    line_item: &form.into(),
-                    quote: &quote.into(),
-                    error_message: Some(error_message),
-                }
-                .to_string(),
-            )
-            .into_response())
+        None => {
+            let template = NewFormWithErrors { form: &form };
+            let content = template.to_string();
+            let line_item_date_id = form.context.field_value("line_item_date_id").unwrap_or("");
+            let retarget = format!("#line_item_date_{}_line_item_new", line_item_date_id);
+            Ok(HtmxResponder::Retarget {
+                content,
+                retarget: Header::new("HX-Retarget", retarget),
+                reswap: Header::new("HX-Reswap", "outerhtml".to_string()),
+            })
         }
     }
 }
 
-pub(crate) async fn edit(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    Path(id): Path<String>,
-) -> Result<impl IntoResponse> {
-    let start = Instant::now();
-    let line_item = line_items::query::read(&pool, id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("li  - read duration: {duration} μs");
-    let start = Instant::now();
-    let line_item_date = line_item_dates::query::read(&pool, &line_item.line_item_date_id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("lid - read duration: {duration} μs");
-    let start = Instant::now();
-    let quote = quotes::query::read(&pool, &line_item_date.quote_id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("quo - read duration: {duration} μs");
-    Ok(Html(
+#[get("/edit/<id>")]
+async fn edit<'a>(db: Db, id: String) -> Result<RawHtml<String>> {
+    let line_item = db
+        .run(move |conn| {
+            let line_item = line_items::query::read(conn, id)?;
+            Result::Ok(line_item)
+        })
+        .await?;
+
+    let lid_id = line_item.line_item_date_id.clone();
+    let quote = db
+        .run(move |conn| {
+            let line_item_date = line_item_dates::query::read(conn, &lid_id)?;
+            let quote = quotes::query::read(conn, &line_item_date.quote_id)?;
+            Result::Ok(quote)
+        })
+        .await?;
+
+    Ok(RawHtml(
         EditForm {
             line_item: &line_item.into(),
             quote: &quote.into(),
-            error_message: None,
         }
         .to_string(),
     ))
 }
 
-pub(crate) async fn update(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    axum::Form(form): axum::Form<LineItemForm>,
-) -> Result<impl IntoResponse> {
-    let result = form.validate();
-    match result {
-        Ok(_) => {
-            let start = Instant::now();
-            let line_item = line_items::query::update(&pool, &form).await?;
-            let duration = start.elapsed().as_micros();
-            info!("li  - update duration: {duration} μs");
-            let start = Instant::now();
-            let quote =
-                quotes::query::from_line_item_date_id(&pool, &form.line_item_date_id).await?;
-            info!("Quote total after update: {}", quote.total);
-            let duration = start.elapsed().as_micros();
-            info!("quo - read duration: {duration} μs");
-            Ok(Html(
-                Update {
-                    line_item: &line_item.into(),
-                    quote: &quote.into(),
-                    message: "Item was successfully updated.",
-                }
-                .to_string(),
-            )
-            .into_response())
+#[post("/update", data = "<form>")]
+async fn update(db: Db, form: Form<Contextual<'_, EditLineItemForm>>) -> Result<RawHtml<String>> {
+    print!("Form:\n{form:?}");
+    match form.value {
+        Some(ref li_form) => {
+            let quote_id = li_form.quote_id.clone();
+            let li_form = li_form.clone();
+            let line_item = db
+                .run(move |conn| {
+                    let line_item = line_items::query::update(conn, &li_form)?;
+                    Result::Ok(line_item)
+                })
+                .await?;
+
+            let quote = db
+                .run(move |conn| {
+                    let quote = quotes::query::read(conn, &quote_id)?;
+                    Result::Ok(quote)
+                })
+                .await?;
+
+            let content = Update {
+                line_item: &line_item.into(),
+                quote: &quote.into(),
+                message: "Item was successfully updated.",
+            }
+            .to_string();
+
+            Ok(RawHtml(content))
         }
-        Err(errors) => {
-            info!("ValidationErrors:\n{:?}", errors);
-            let start = Instant::now();
-            let quote =
-                quotes::query::from_line_item_date_id(&pool, &form.line_item_date_id).await?;
-            let duration = start.elapsed().as_micros();
-            info!("quo - read duration: {duration} μs");
-            let error_message = String::from("Test");
-            Ok(Html(
-                EditForm {
-                    line_item: &form.into(),
-                    quote: &quote.into(),
-                    error_message: Some(error_message),
-                }
-                .to_string(),
-            )
-            .into_response())
+        None => {
+            let template = EditFormWithErrors { form: &form };
+            let content = template.to_string();
+            Ok(RawHtml(content))
         }
     }
 }
 
-pub(crate) async fn delete(
-    State(pool): State<Pool<ConnectionManager<SqliteConnection>>>,
-    axum::Form(form): axum::Form<DeleteForm>,
-) -> Result<impl IntoResponse> {
-    let start = Instant::now();
-    let line_item = line_items::query::delete(&pool, &form.id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("li  - delete duration: {duration} μs");
-    let start = Instant::now();
-    let quote = quotes::query::from_line_item_date_id(&pool, &line_item.line_item_date_id).await?;
-    let duration = start.elapsed().as_micros();
-    info!("quo - read duration: {duration} μs");
-    Ok(Html(
+#[post("/delete", data = "<form>")]
+async fn delete(db: Db, form: Form<DeleteForm>) -> Result<RawHtml<String>> {
+    let quote = db
+        .run(move |conn| {
+            let line_item = line_items::query::delete(conn, &form.id)?;
+            let quote = quotes::query::from_line_item_date_id(conn, &line_item.line_item_date_id)?;
+            Result::Ok(quote)
+        })
+        .await?;
+
+    Ok(RawHtml(
         Destroy {
             quote: &quote.into(),
             message: "Item was successfully destroyed.",
         }
         .to_string(),
-    )
-    .into_response())
+    ))
 }
