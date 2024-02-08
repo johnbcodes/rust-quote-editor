@@ -1,4 +1,5 @@
 #![warn(clippy::all)]
+#![allow(clippy::blocks_in_conditions)] // Until https://github.com/rwf2/Rocket/issues/2655 is released
 #![deny(unreachable_pub, private_bounds, private_interfaces)]
 #![forbid(unsafe_code)]
 
@@ -8,6 +9,7 @@ extern crate rocket;
 mod assets;
 mod currency;
 mod error;
+mod forms;
 pub mod layout;
 pub mod line_item_dates;
 pub mod line_items;
@@ -15,7 +17,6 @@ pub mod quotes;
 mod rocket_ext;
 mod schema;
 mod time;
-mod forms;
 
 use diesel::sqlite::SqliteConnection;
 use rocket::response::Redirect;
