@@ -1,75 +1,59 @@
 use crate::{
-    line_items::model::{LineItem, LineItemForm},
+    line_items::model::{EditLineItemForm, LineItem, NewLineItemForm},
     schema::{line_item_dates, line_items},
     Result,
 };
 use diesel::prelude::*;
-use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
 
-pub(crate) async fn all_for_quote<S: AsRef<str>>(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
+pub(crate) fn all_for_quote<S: AsRef<str>>(
+    connection: &mut SqliteConnection,
     quote_id: S,
 ) -> Result<Vec<LineItem>> {
-    let mut connection = pool.get()?;
     let records = line_items::table
         .inner_join(line_item_dates::table)
         .select(LineItem::as_select())
         .filter(line_item_dates::quote_id.eq(&quote_id.as_ref()))
-        .get_results(&mut connection)?;
+        .get_results(connection)?;
 
     Ok(records)
 }
 
-pub(crate) async fn all_for_line_item_date<S: AsRef<str>>(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
+pub(crate) fn all_for_line_item_date<S: AsRef<str>>(
+    connection: &mut SqliteConnection,
     line_item_date_id: S,
 ) -> Result<Vec<LineItem>> {
-    let mut connection = pool.get()?;
     let records = line_items::table
         .filter(line_items::line_item_date_id.eq(&line_item_date_id.as_ref()))
-        .get_results(&mut connection)?;
+        .get_results(connection)?;
     Ok(records)
 }
 
-pub(crate) async fn read<S: AsRef<str>>(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
-    id: S,
-) -> Result<LineItem> {
-    let mut connection = pool.get()?;
-    read_from_connection(&mut connection, id)
-}
-
-fn read_from_connection<S: AsRef<str>>(
-    connection: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
-    id: S,
-) -> Result<LineItem> {
+pub(crate) fn read<S: AsRef<str>>(connection: &mut SqliteConnection, id: S) -> Result<LineItem> {
     let record = line_items::table
         .filter(line_items::id.eq(&id.as_ref()))
         .get_result(connection)?;
     Ok(record)
 }
 
-pub(crate) async fn insert(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
-    form: &LineItemForm,
+pub(crate) fn insert(
+    connection: &mut SqliteConnection,
+    form: &NewLineItemForm,
 ) -> Result<LineItem> {
     let record: LineItem = form.into();
 
-    let mut connection = pool.get()?;
     diesel::dsl::insert_into(line_items::table)
         .values(&record)
-        .execute(&mut connection)?;
+        .execute(connection)?;
 
     Ok(record)
 }
 
-pub(crate) async fn update(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
-    form: &LineItemForm,
+pub(crate) fn update(
+    connection: &mut SqliteConnection,
+    form: &EditLineItemForm,
 ) -> Result<LineItem> {
     let record: LineItem = form.into();
 
-    let mut connection = pool.get()?;
     diesel::dsl::update(line_items::table)
         .set((
             line_items::name.eq(&record.name),
@@ -79,27 +63,23 @@ pub(crate) async fn update(
             line_items::updated_at.eq(&record.updated_at),
         ))
         .filter(line_items::id.eq(&record.id))
-        .execute(&mut connection)?;
+        .execute(connection)?;
 
-    read_from_connection(&mut connection, &record.id)
+    read(connection, &record.id)
 }
 
-pub(crate) async fn delete<S: AsRef<str>>(
-    pool: &Pool<ConnectionManager<SqliteConnection>>,
-    id: S,
-) -> Result<LineItem> {
-    let mut connection = pool.get()?;
-    let record = read_from_connection(&mut connection, &id)?;
+pub(crate) fn delete<S: AsRef<str>>(connection: &mut SqliteConnection, id: S) -> Result<LineItem> {
+    let record = read(connection, &id)?;
 
     _ = diesel::dsl::delete(line_items::table)
         .filter(line_items::id.eq(&id.as_ref()))
-        .execute(&mut connection)?;
+        .execute(connection)?;
 
     Ok(record)
 }
 
 pub(crate) fn delete_all_for_quote<S: AsRef<str>>(
-    tx: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
+    tx: &mut SqliteConnection,
     quote_id: S,
 ) -> Result {
     let line_items1 = diesel::alias!(line_items as line_items1);
@@ -118,10 +98,7 @@ pub(crate) fn delete_all_for_quote<S: AsRef<str>>(
     Ok(())
 }
 
-pub(crate) fn delete_all_for_date<S: AsRef<str>>(
-    tx: &mut PooledConnection<ConnectionManager<SqliteConnection>>,
-    id: S,
-) -> Result {
+pub(crate) fn delete_all_for_date<S: AsRef<str>>(tx: &mut SqliteConnection, id: S) -> Result {
     _ = diesel::dsl::delete(line_items::table)
         .filter(line_items::line_item_date_id.eq(&id.as_ref()))
         .execute(tx)?;

@@ -1,9 +1,11 @@
 use crate::{
+    forms::css_for_field,
     layout::Flash,
     line_item_dates::{model::LineItemDatePresenter, view::LineItemDate},
     line_items::model::LineItemPresenter,
-    quotes::model::QuotePresenter,
+    quotes::model::{EditQuoteForm, NewQuoteForm, QuotePresenter},
 };
+use rocket::form::{Contextual, Form};
 use std::collections::HashMap;
 
 markup::define! {
@@ -96,7 +98,7 @@ markup::define! {
         @InitialFooter { quote }
     }
 
-    EditForm<'a>(quote: &'a QuotePresenter, error_message: Option<String>) {
+    EditForm<'a>(quote: &'a QuotePresenter) {
         div[id = &quote.dom_id()] {
             form[id = format!("form_{}", &quote.id()),
                 "hx-post" = "/quotes/update",
@@ -104,26 +106,20 @@ markup::define! {
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
                 autocomplete = "off",
+                novalidate,
                 "accept-charset" = "UTF-8"] {
 
-                @let form_input_class = if error_message.is_some() { "form-input border-primary" } else { "form-input" };
-                @if let Some(message) = error_message {
-                    div[class = "w-full text-primary bg-primary-bg p-2 rounded-md"] { @message }
-                }
                 div[class = "[flex:1]"] {
-                    @if let Some(id) = &quote.id {
-                        input[id = "quote_id",
-                            name = "id",
-                            "type" = "hidden",
-                            value = id] {}
-                    }
+                    input[id = "quote_id",
+                        name = "id",
+                        "type" = "hidden",
+                        value = &quote.id.clone().unwrap()] {}
                     label[class = "visually-hidden", "for" = "quote_name"] { "Name" }
                     input[id = "quote_name",
                         name = "name",
-                        class = form_input_class,
+                        class = "form-input",
                         autofocus = "autofocus",
                         placeholder = "Name of your quote",
-                        required,
                         "type" = "text",
                         value = &quote.name] {}
                 }
@@ -140,36 +136,113 @@ markup::define! {
         }
     }
 
-    NewForm<'a>(quote: &'a QuotePresenter, error_message: Option<String>) {
-        div[id = &quote.dom_id()] {
+    EditFormWithErrors<'a, 'r>(form: &'a Form<Contextual<'r, EditQuoteForm>>) {
+        @let id = form.context.field_value("id").unwrap_or("");
+        @let name = form.context.field_value("name").unwrap_or("");
+        @let dom_id = format!("quote_{}", &id);
+        div[id = &dom_id] {
+            form[id = format!("form_{}", &id),
+                "hx-post" = "/quotes/update",
+                "hx-target" = {format!("#{}", &dom_id)},
+                "hx-swap" = "outerHTML",
+                class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
+                autocomplete = "off",
+                novalidate,
+                "accept-charset" = "UTF-8"] {
+
+                @let messages = form.context.errors().map(|item| item.to_string()).collect::<Vec<String>>();
+                div[class = "w-full text-primary bg-primary-bg p-2 rounded-md"] {
+                    @for message in messages {
+                        p { @message }
+                    }
+                }
+
+                div[class = "[flex:1]"] {
+                    input[id = "quote_id",
+                        name = "id",
+                        "type" = "hidden",
+                        value = &id] {}
+                    label[class = "visually-hidden", "for" = "quote_name"] { "Name" }
+                    input[id = "quote_name",
+                        name = "name",
+                        class = css_for_field(form, "name", "form-input", "border-primary"),
+                        autofocus = "autofocus",
+                        placeholder = "Name of your quote",
+                        "type" = "text",
+                        value = &name] {}
+                }
+                a[class = "button button-light",
+                    "hx-get" = {format!("/quotes/{}", &id)},
+                    "hx-target" = {format!("#{}", &dom_id)},
+                    "hx-trigger" = "click"] { "Cancel" }
+                input[name = "commit",
+                    "type" = "submit",
+                    value = "Update quote",
+                    class = "button button-secondary",
+                    "_" = "on click add { pointer-events: none }"] {}
+            }
+        }
+    }
+
+    NewForm() {
+        div[id = "quote_new"] {
             form[id = "form_new",
                 "hx-post" = "/quotes/create",
                 "hx-target" = "#quotes_empty",
                 "hx-swap" = "afterend",
                 class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
                 autocomplete = "off",
+                novalidate,
                 "accept-charset" = "UTF-8"] {
 
-                @let form_input_class = if error_message.is_some() { "form-input border-primary" } else { "form-input" };
-                @if let Some(message) = error_message {
-                    div[class = "w-full text-primary bg-primary-bg p-2 rounded-md"] { @message }
-                }
                 div[class = "[flex:1]"] {
-                    @if let Some(id) = &quote.id {
-                        input[id = "quote_id",
-                            name = "id",
-                            "type" = "hidden",
-                            value = id] {}
-                    }
                     label[class = "visually-hidden", "for" = "quote_name"] { "Name" }
                     input[id = "quote_name",
                         name = "name",
-                        class = form_input_class,
+                        class = "form-input",
                         autofocus = "autofocus",
                         placeholder = "Name of your quote",
-                        required,
+                        "type" = "text"] {}
+                }
+                a[class = "button button-light",
+                    "_" = "on click remove #form_new"] { "Cancel" }
+                input[name = "commit",
+                    "type" = "submit",
+                    value = "Create quote",
+                    class = "button button-secondary",
+                    "_" = "on click add { pointer-events: none }"] {}
+            }
+        }
+    }
+
+    NewFormWithErrors<'a, 'r>(form: &'a Form<Contextual<'r, NewQuoteForm>>) {
+        @let name = form.context.field_value("name").unwrap_or("");
+        div[id = "quote_new"] {
+            form[id = "form_new",
+                "hx-post" = "/quotes/create",
+                "hx-target" = "#quotes_empty",
+                "hx-swap" = "afterend",
+                class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
+                autocomplete = "off",
+                novalidate,
+                "accept-charset" = "UTF-8"] {
+
+                @let messages = form.context.errors().map(|item| item.to_string()).collect::<Vec<String>>();
+                div[class = "w-full text-primary bg-primary-bg p-2 rounded-md"] {
+                    @for message in messages {
+                        p { @message }
+                    }
+                }
+
+                div[class = "[flex:1]"] {
+                    label[class = "visually-hidden", "for" = "quote_name"] { "Name" }
+                    input[id = "quote_name",
+                        name = "name",
+                        class = "form-input border-primary",
+                        autofocus = "autofocus",
+                        placeholder = "Name of your quote",
                         "type" = "text",
-                        value = &quote.name] {}
+                        value = &name] {}
                 }
                 a[class = "button button-light",
                     "_" = "on click remove #form_new"] { "Cancel" }
