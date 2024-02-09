@@ -2,9 +2,6 @@
 
 > Rust implementation of the quote editor from [Turbo Rails Tutorial](https://www.hotrails.dev/turbo-rails).
 
-### TODO
-* Group queries in run block where possible
-
 ### Motivation and caveats
 
 The main motivation is learning to develop web applications with Rust and JavaScript combined. It now includes
