@@ -29,9 +29,9 @@ Some features of the tutorial were intentionally left out and possibly will be w
 * Broadcasting with WebSockets (Chapter 5)
 * Security (Chapter 6)
 
-Additionally, there were some other features and integral parts of Rails that haven't been replicated yet:
+Additionally, there were some other features that haven't been replicated yet:
 
-* The look and feel deviates from [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements that are not in the tutorial
+* The look and feel deviates from the Turbo Rails Tutorial [demo](https://www.hotrails.dev/quotes) because the author has made some UI enhancements that are not in the tutorial
 * Viewports less than tablet sizing
 * Labels for input fields
 * Delete confirmation
