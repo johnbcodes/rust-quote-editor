@@ -56,14 +56,14 @@ jobs:
           fetch-depth: 0
 
       - name: 👀 Read app name
-        uses: SebRollen/toml-action@v1.0.2
+        uses: SebRollen/toml-action@v1.2.0
         id: app_name
         with:
           file: 'fly.toml'
           field: 'app'
 
       - name: 🚀 Deploy Production
-        uses: superfly/flyctl-actions@1.4
+        uses: superfly/flyctl-actions@1.5
         with:
           args:
             'deploy --image registry.fly.io/${{ steps.app_name.outputs.value }}:${{ github.ref_name }}'
