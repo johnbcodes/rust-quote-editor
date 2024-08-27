@@ -52,7 +52,6 @@ pub(crate) async fn create(
     db: Db,
     form: Form<Contextual<'_, NewLineItemDateForm>>,
 ) -> Result<HtmxResponder> {
-    print!("Form:\n{form:?}");
     match form.value {
         Some(ref lid_form) => {
             let lid_form = lid_form.clone();
@@ -104,7 +103,6 @@ pub(crate) async fn update(
     db: Db,
     form: Form<Contextual<'_, EditLineItemDateForm>>,
 ) -> Result<RawHtml<String>> {
-    print!("Form:\n{form:?}");
     match form.value {
         Some(ref lid_form) => {
             let lid_form = lid_form.clone();

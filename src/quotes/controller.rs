@@ -119,7 +119,6 @@ async fn new() -> RawHtml<String> {
 
 #[post("/create", data = "<form>")]
 async fn create(db: Db, form: Form<Contextual<'_, NewQuoteForm>>) -> Result<HtmxResponder> {
-    print!("Form:\n{form:?}");
     match form.value {
         Some(ref quote_form) => {
             let quote_form = quote_form.clone();

@@ -61,7 +61,6 @@ async fn new(db: Db, line_item_date_id: String) -> Result<RawHtml<String>> {
 
 #[post("/create", data = "<form>")]
 async fn create(db: Db, form: Form<Contextual<'_, NewLineItemForm>>) -> Result<HtmxResponder> {
-    print!("Form:\n{form:?}");
     match form.value {
         Some(ref li_form) => {
             let quote_id = li_form.quote_id.clone();
@@ -132,7 +131,6 @@ async fn edit<'a>(db: Db, id: String) -> Result<RawHtml<String>> {
 
 #[post("/update", data = "<form>")]
 async fn update(db: Db, form: Form<Contextual<'_, EditLineItemForm>>) -> Result<RawHtml<String>> {
-    print!("Form:\n{form:?}");
     match form.value {
         Some(ref li_form) => {
             let quote_id = li_form.quote_id.clone();
