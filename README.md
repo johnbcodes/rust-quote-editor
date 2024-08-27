@@ -40,13 +40,13 @@ Additionally, there were some other features that haven't been replicated yet:
 
 #### Prerequisites
 
-* Rust version 1.67.1 or greater installed
+* Rust version 1.78.0 or greater installed
 * NodeJS version 20 or greater installed
 
 #### Install and build
 
 * Install Node dependencies `npm install`
-* Build web with `npm run build` 
+* Build web with `npm run build`
 * Install Rust dependencies `cargo install`
 * Build with `cargo build`
 * Run with `cargo run`
@@ -90,4 +90,3 @@ Additionally, there were some other features that haven't been replicated yet:
 * `fly auth docker`
 * `docker push registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
 * `fly deploy --image registry.fly.io/<GLOBALLY-UNIQUE-APP-NAME>:<VERSION-NUMBER>`
-
