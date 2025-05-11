@@ -103,7 +103,7 @@ async fn create(db: Db, form: Form<Contextual<'_, NewLineItemForm>>) -> Result<H
 }
 
 #[get("/edit/<id>")]
-async fn edit<'a>(db: Db, id: String) -> Result<RawHtml<String>> {
+async fn edit(db: Db, id: String) -> Result<RawHtml<String>> {
     let line_item = db
         .run(move |conn| {
             let line_item = line_items::query::read(conn, id)?;
