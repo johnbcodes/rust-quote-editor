@@ -1,6 +1,6 @@
 use rocket::{
-    response::{Debug, Responder, Result},
     Request,
+    response::{Debug, Responder, Result},
 };
 
 // Make our own error that wraps `anyhow::Error`.

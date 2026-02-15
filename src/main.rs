@@ -21,7 +21,7 @@ mod time;
 
 use diesel::sqlite::SqliteConnection;
 use rocket::response::Redirect;
-use rocket::{fairing::AdHoc, Build, Rocket};
+use rocket::{Build, Rocket, fairing::AdHoc};
 use rocket_sync_db_pools::database;
 
 #[database("demo")]
@@ -50,7 +50,7 @@ fn index() -> Redirect {
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> Rocket<Build> {
-    use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
+    use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 
     const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 

@@ -1,7 +1,7 @@
 use crate::{
+    Result,
     line_items::model::{EditLineItemForm, LineItem, NewLineItemForm},
     schema::{line_item_dates, line_items},
-    Result,
 };
 use diesel::prelude::*;
 

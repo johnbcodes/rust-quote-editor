@@ -1,6 +1,6 @@
 use once_cell::sync::Lazy;
 use regex::Regex;
-use time::{format_description::FormatItem, macros::format_description, Date};
+use time::{Date, format_description::FormatItem, macros::format_description};
 
 pub(crate) static DATE_FORMAT: &[FormatItem<'_>] = format_description!("[year]-[month]-[day]");
 pub(crate) static DATE_REGEX: Lazy<Regex> =

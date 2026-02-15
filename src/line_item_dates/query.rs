@@ -1,8 +1,8 @@
 use crate::{
+    Result,
     line_item_dates::model::{EditLineItemDateForm, LineItemDate, NewLineItemDateForm},
     line_items,
     schema::line_item_dates,
-    Result,
 };
 use diesel::prelude::*;
 

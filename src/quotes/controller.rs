@@ -1,4 +1,5 @@
 use crate::{
+    Db, Result,
     layout::{Flash, Layout},
     line_item_dates::{self, model::LineItemDatePresenter},
     line_items::{self, model::LineItemPresenter},
@@ -8,7 +9,6 @@ use crate::{
         view::*,
     },
     rocket_ext::HtmxResponder,
-    Db, Result,
 };
 use itertools::Itertools;
 use rocket::{

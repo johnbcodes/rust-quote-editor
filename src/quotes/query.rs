@@ -1,8 +1,7 @@
 use crate::{
-    line_item_dates,
+    Result, line_item_dates,
     quotes::model::{EditQuoteForm, NewQuoteForm, Quote, QuoteWithTotal},
     schema::quotes,
-    Result,
 };
 use diesel::prelude::*;
 

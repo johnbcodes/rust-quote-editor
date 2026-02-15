@@ -1,5 +1,5 @@
 use crate::{
-    line_item_dates,
+    Db, Result, line_item_dates,
     line_items::{
         self,
         model::{DeleteForm, EditLineItemForm, LineItemPresenter, NewLineItemForm},
@@ -7,7 +7,6 @@ use crate::{
     },
     quotes,
     rocket_ext::HtmxResponder,
-    Db, Result,
 };
 use rocket::{
     fairing::AdHoc,
