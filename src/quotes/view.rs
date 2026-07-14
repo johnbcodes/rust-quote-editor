@@ -42,13 +42,13 @@ markup::define! {
     Quote<'a>(quote: &'a QuotePresenter) {
         div[id = &quote.dom_id()] {
             div[class= "flex justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]"] {
-                a[href = {format!("/quotes/show/{}", &quote.id())},
+                a[href = {format!("/quotes/show/{}", quote.id())},
                     "hx-boost" = "true",
                     "hx-push-url" = "true",
                     "hx-history" = "false"] { @quote.name }
                 div[class = "flex flex-auto grow-0 shrink-0 self-start gap-2"] {
                     form["hx-post" = "/quotes/delete",
-                         "hx-target" = {format!("#{}", &quote.dom_id())},
+                         "hx-target" = {format!("#{}", quote.dom_id())},
                          "hx-swap" = "delete"] {
                         input[id = "quote_id",
                             name = "id",
@@ -57,8 +57,8 @@ markup::define! {
                         button[class = "button button-light", "type" = "submit"] {"Delete"}
                     }
                     a[class = "button button-light",
-                        "hx-get" = {format!("/quotes/edit/{}", &quote.id())},
-                        "hx-target" = {format!("#{}", &quote.dom_id())},
+                        "hx-get" = {format!("/quotes/edit/{}", quote.id())},
+                        "hx-target" = {format!("#{}", quote.dom_id())},
                         "hx-trigger" = "click"] { "Edit" }
                 }
             }
@@ -79,7 +79,7 @@ markup::define! {
                 }
 
                 a[class = "button button-prime",
-                    "hx-get" = {format!("/line_item_dates/new/{}", &quote.id())},
+                    "hx-get" = {format!("/line_item_dates/new/{}", quote.id())},
                     "hx-target" = "#line_item_date_new",
                     "hx-trigger" = "click",
                     "hx-swap" = "innerHTML"] { "New date" }
@@ -100,9 +100,9 @@ markup::define! {
 
     EditForm<'a>(quote: &'a QuotePresenter) {
         div[id = &quote.dom_id()] {
-            form[id = format!("form_{}", &quote.id()),
+            form[id = format!("form_{}", quote.id()),
                 "hx-post" = "/quotes/update",
-                "hx-target" = {format!("#{}", &quote.dom_id())},
+                "hx-target" = {format!("#{}", quote.dom_id())},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
                 autocomplete = "off",
@@ -124,8 +124,8 @@ markup::define! {
                         value = &quote.name] {}
                 }
                 a[class = "button button-light",
-                    "hx-get" = {format!("/quotes/{}", &quote.id())},
-                    "hx-target" = {format!("#{}", &quote.dom_id())},
+                    "hx-get" = {format!("/quotes/{}", quote.id())},
+                    "hx-target" = {format!("#{}", quote.dom_id())},
                     "hx-trigger" = "click"] { "Cancel" }
                 input[name = "commit",
                     "type" = "submit",
@@ -139,11 +139,11 @@ markup::define! {
     EditFormWithErrors<'a, 'r>(form: &'a Form<Contextual<'r, EditQuoteForm>>) {
         @let id = form.context.field_value("id").unwrap_or("");
         @let name = form.context.field_value("name").unwrap_or("");
-        @let dom_id = format!("quote_{}", &id);
+        @let dom_id = format!("quote_{}", id);
         div[id = &dom_id] {
-            form[id = format!("form_{}", &id),
+            form[id = format!("form_{}", id),
                 "hx-post" = "/quotes/update",
-                "hx-target" = {format!("#{}", &dom_id)},
+                "hx-target" = {format!("#{}", dom_id)},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap justify-between items-center gap-3 bg-white rounded-md mb-4 px-4 py-2 shadow-[1px_3px_6px_hsl(0,0%,0%,0.1)]",
                 autocomplete = "off",
@@ -172,8 +172,8 @@ markup::define! {
                         value = &name] {}
                 }
                 a[class = "button button-light",
-                    "hx-get" = {format!("/quotes/{}", &id)},
-                    "hx-target" = {format!("#{}", &dom_id)},
+                    "hx-get" = {format!("/quotes/{}", id)},
+                    "hx-target" = {format!("#{}", dom_id)},
                     "hx-trigger" = "click"] { "Cancel" }
                 input[name = "commit",
                     "type" = "submit",

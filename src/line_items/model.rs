@@ -129,7 +129,7 @@ impl LineItemPresenter {
     pub fn dom_id(&self) -> String {
         match &self.id {
             Some(id) => format!("line_item_{}", id),
-            None => format!("line_item_date_{}_line_item_new", &self.line_item_date_id),
+            None => format!("line_item_date_{}_line_item_new", self.line_item_date_id),
         }
     }
 }

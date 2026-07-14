@@ -80,7 +80,7 @@ impl QuotePresenter {
     }
 
     pub fn dom_id(&self) -> String {
-        format!("quote_{}", &self.id())
+        format!("quote_{}", self.id())
     }
 }
 

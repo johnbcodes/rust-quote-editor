@@ -24,7 +24,7 @@ markup::define! {
                 }
                 div[class = "flex flex-[0_0_10rem] order-[revert] gap-2"] {
                     form["hx-post" = "/line_items/delete",
-                        "hx-target" = {format!("#{}", &line_item.dom_id())},
+                        "hx-target" = {format!("#{}", line_item.dom_id())},
                         "hx-swap" = "delete"] {
 
                         input[id = "line_item_id",
@@ -34,8 +34,8 @@ markup::define! {
                         button[class = "button button-light", "type" = "submit"] {"Delete"}
                     }
                     a[class = "button button-light",
-                        "hx-get" = {format!("/line_items/edit/{}", &line_item.id())},
-                        "hx-target" = {format!("#{}", &line_item.dom_id())},
+                        "hx-get" = {format!("/line_items/edit/{}", line_item.id())},
+                        "hx-target" = {format!("#{}", line_item.dom_id())},
                         "hx-trigger" = "click"] { "Edit" }
                 }
             }
@@ -46,7 +46,7 @@ markup::define! {
         div[id = &line_item.dom_id()] {
             form[id = &line_item.dom_id(),
                 "hx-post" = "/line_items/update",
-                "hx-target" = {format!("#{}", &line_item.dom_id())},
+                "hx-target" = {format!("#{}", line_item.dom_id())},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap items-start bg-white gap-2 mb-3 p-2 rounded-md",
                 autocomplete = "off",
@@ -105,8 +105,8 @@ markup::define! {
                         placeholder = "Description (optional)"] { @line_item.description }
                 }
                 a[class = "button button-light",
-                    "hx-get" = {format!("/line_items/{}", &line_item.id())},
-                    "hx-target" = {format!("#{}", &line_item.dom_id())},
+                    "hx-get" = {format!("/line_items/{}", line_item.id())},
+                    "hx-target" = {format!("#{}", line_item.dom_id())},
                     "hx-trigger" = "click",
                     "hx-swap" = "outerHTML"] { "Cancel" }
                 input[name = "commit",
@@ -127,12 +127,12 @@ markup::define! {
         @let quantity = context.field_value("quantity").unwrap_or("");
         @let unit_price = context.field_value("unit_price").unwrap_or("");
         @let description = context.field_value("description").unwrap_or("");
-        @let dom_id = format!("line_item_{}", &id);
+        @let dom_id = format!("line_item_{}", id);
 
         div[id = &dom_id] {
             form[id = &dom_id,
                 "hx-post" = "/line_items/update",
-                "hx-target" = {format!("#{}", &dom_id)},
+                "hx-target" = {format!("#{}", dom_id)},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap items-start bg-white gap-2 mb-3 p-2 rounded-md",
                 autocomplete = "off",
@@ -194,8 +194,8 @@ markup::define! {
                         placeholder = "Description (optional)"] { @description }
                 }
                 a[class = "button button-light",
-                    "hx-get" = {format!("/line_items/{}", &id)},
-                    "hx-target" = {format!("#{}", &dom_id)},
+                    "hx-get" = {format!("/line_items/{}", id)},
+                    "hx-target" = {format!("#{}", dom_id)},
                     "hx-trigger" = "click",
                     "hx-swap" = "outerHTML"] { "Cancel" }
                 input[name = "commit",
@@ -210,7 +210,7 @@ markup::define! {
     NewForm<'a>(line_item: &'a LineItemPresenter,
                 quote: &'a QuotePresenter) {
         div[id = &line_item.dom_id()] {
-            @let line_item_new_dom_id = format!("#line_item_date_{}_line_items", &line_item.line_item_date_id);
+            @let line_item_new_dom_id = format!("#line_item_date_{}_line_items", line_item.line_item_date_id);
             form[id = "form_new",
                 "hx-post" = "/line_items/create",
                 "hx-target" = line_item_new_dom_id,
@@ -284,7 +284,7 @@ markup::define! {
         @let description = context.field_value("description").unwrap_or("");
 
         div[id = "line_item_new"] {
-            @let line_item_new_dom_id = format!("#line_item_date_{}_line_items", &line_item_date_id);
+            @let line_item_new_dom_id = format!("#line_item_date_{}_line_items", line_item_date_id);
             form[id = "form_new",
                 "hx-post" = "/line_items/create",
                 "hx-target" = line_item_new_dom_id,
@@ -359,7 +359,7 @@ markup::define! {
     }
 
     Create<'a>(line_item: &'a LineItemPresenter, quote: &'a QuotePresenter, message: &'a str) {
-        @let line_item_new_dom_id = format!("line_item_date_{}_line_item_new", &line_item.line_item_date_id);
+        @let line_item_new_dom_id = format!("line_item_date_{}_line_item_new", line_item.line_item_date_id);
         @LineItem{ line_item }
         div[id = &line_item_new_dom_id, "hx-swap-oob"="innerHTML"]{}
         @Flash{ message }

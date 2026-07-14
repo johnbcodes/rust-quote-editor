@@ -84,11 +84,11 @@ impl LineItemDatePresenter {
     }
 
     pub fn dom_id(&self) -> String {
-        format!("line_item_date_{}", &self.id())
+        format!("line_item_date_{}", self.id())
     }
 
     pub fn edit_dom_id(&self) -> String {
-        format!("edit_line_item_date_{}", &self.id())
+        format!("edit_line_item_date_{}", self.id())
     }
 
     pub fn date_long_form(&self) -> String {

@@ -27,19 +27,19 @@ markup::define! {
                         div[class = "flex flex-[0_0_10rem] order-[revert] gap-2 font-bold text-[0.875rem] tracking-[1px] uppercase"] {}
                     }
 
-                    div[id = {format!("line_item_date_{}_line_items", &line_item_date.id())}] {
+                    div[id = {format!("line_item_date_{}_line_items", line_item_date.id())}] {
                         @for line_item in *line_items {
                             @LineItem { line_item }
                         }
                     }
 
-                    @let line_item_new_id = format!("line_item_date_{}_line_item_new", &line_item_date.id());
+                    @let line_item_new_id = format!("line_item_date_{}_line_item_new", line_item_date.id());
                     div[id = &line_item_new_id] {}
 
                     div[class = "p-4 text-center border-2 border-dashed border-[hsl(0,6%,93%)] rounded-md"] {
-                        @let target = format!("#line_item_date_{}_line_item_new", &line_item_date.id());
+                        @let target = format!("#line_item_date_{}_line_item_new", line_item_date.id());
                         a[class = "button button-prime",
-                            "hx-get" = {format!("/line_items/new/{}", &line_item_date.id())},
+                            "hx-get" = {format!("/line_items/new/{}", line_item_date.id())},
                             "hx-target" = &target,
                             "hx-trigger" = "click",
                             "hx-swap" = "innerHTML"] { "Add item" }
@@ -57,7 +57,7 @@ markup::define! {
                 }
                 div[class = "flex gap-2"] {
                     form["hx-post" = "/line_item_dates/delete",
-                        "hx-target" = {format!("#{}", &line_item_date.dom_id())},
+                        "hx-target" = {format!("#{}", line_item_date.dom_id())},
                         "hx-swap" = "delete"] {
 
                         input[id = "line_item_date_id",
@@ -67,8 +67,8 @@ markup::define! {
                         button[class = "button button-light", "hx-confirm" = "Are you sure?", "type" = "submit"] {"Delete"}
                     }
                     a[class = "button button-light",
-                        "hx-get" = {format!("/line_item_dates/edit/{}", &line_item_date.id())},
-                        "hx-target" = {format!("#{}", &line_item_date.edit_dom_id())},
+                        "hx-get" = {format!("/line_item_dates/edit/{}", line_item_date.id())},
+                        "hx-target" = {format!("#{}", line_item_date.edit_dom_id())},
                         "hx-trigger" = "click"] { "Edit" }
                 }
             }
@@ -77,9 +77,9 @@ markup::define! {
 
     EditForm<'a>(line_item_date: &'a LineItemDatePresenter) {
         div[id = line_item_date.edit_dom_id()] {
-            form[id = {format!("form_{}", &line_item_date.edit_dom_id())},
+            form[id = {format!("form_{}", line_item_date.edit_dom_id())},
                 "hx-post" = "/line_item_dates/update",
-                "hx-target" = {format!("#{}", &line_item_date.dom_id())},
+                "hx-target" = {format!("#{}", line_item_date.dom_id())},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap justify-between items-center gap-2 mt-8 mb-1.5",
                 autocomplete = "off",
@@ -107,8 +107,8 @@ markup::define! {
                         value = line_item_date.date_short_form()] {}
                 }
                 a[class = "button button-light",
-                    "hx-get" = {format!("/line_item_dates/{}", &line_item_date.id())},
-                    "hx-target" = {format!("#{}", &line_item_date.edit_dom_id())},
+                    "hx-get" = {format!("/line_item_dates/{}", line_item_date.id())},
+                    "hx-target" = {format!("#{}", line_item_date.edit_dom_id())},
                     "hx-trigger" = "click",
                     "hx-swap" = "outerHTML"] { "Cancel" }
                 input[name = "commit",
@@ -125,12 +125,12 @@ markup::define! {
         @let id = context.field_value("id").unwrap_or("");
         @let quote_id = context.field_value("quote_id").unwrap_or("");
         @let date = context.field_value("date").unwrap_or("");
-        @let dom_id = format!("line_item_date_{}", &id);
-        @let edit_dom_id = format!("edit_line_item_date_{}", &id);
+        @let dom_id = format!("line_item_date_{}", id);
+        @let edit_dom_id = format!("edit_line_item_date_{}", id);
         div[id = &dom_id] {
-            form[id = {format!("form_{}", &edit_dom_id)},
+            form[id = {format!("form_{}", edit_dom_id)},
                 "hx-post" = "/line_item_dates/update",
-                "hx-target" = {format!("#{}", &dom_id)},
+                "hx-target" = {format!("#{}", dom_id)},
                 "hx-swap" = "outerHTML",
                 class = "flex flex-wrap justify-between items-center gap-2 mt-8 mb-1.5",
                 autocomplete = "off",
