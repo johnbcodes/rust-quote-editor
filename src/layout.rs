@@ -1,3 +1,5 @@
+include!(concat!(env!("OUT_DIR"), "/vite_assets.rs"));
+
 markup::define! {
     Layout<Head: markup::Render, Body: markup::Render>(head: Head, body: Body) {
         @markup::doctype()
@@ -6,9 +8,14 @@ markup::define! {
                 meta[name = "viewport", content = "width=device-width,initial-scale=1"] {}
                 meta[charset = "utf-8"] {}
                 @head
-                link[rel = "stylesheet", href = {format!("/dist/{}", env!("STYLESHEET"))}] {}
-                link[rel = "icon", href = {format!("/dist/{}", env!("FAVICON"))}] {}
-                script["type" = "module", src = {format!("/dist/{}", env!("SCRIPT"))}] {}
+                @for stylesheet in STYLESHEETS {
+                    link[rel = "stylesheet", href = {format!("/dist/{}", stylesheet)}] {}
+                }
+                link[rel = "icon", href = {format!("/dist/{}", FAVICON)}] {}
+                @for preload in MODULE_PRELOADS {
+                    link[rel = "modulepreload", href = {format!("/dist/{}", preload)}] {}
+                }
+                script["type" = "module", src = {format!("/dist/{}", SCRIPT)}] {}
             }
             body[class = "flex flex-col min-h-full bg-background text-body leading-[1.5]"] {
                 header[class = "flex items-center px-4 py-2 mb-10 bg-white shadow-[2px_4px_10px_hsl(0,0%,0%,0.1)]"] {
