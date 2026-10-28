@@ -12,7 +12,7 @@ the following stack:
 * [Rocket](https://rocket.rs/)
 * [Diesel](https://diesel.rs/)
 * [markup.rs](https://github.com/utkarshkukreti/markup.rs)
-* [Vite+] (https://viteplus.dev)
+* [Vite+](https://viteplus.dev)
 * [Tailwind](https://tailwindcss.com/)
 
 In the past it included these technologies:
