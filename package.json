@@ -3,18 +3,23 @@
   "version": "0.1.0",
   "description": "",
   "author": "",
-  "packageManager": "npm@12.0.1",
+  "packageManager": "npm@12.2.1",
   "engines": {
     "node": "24.x"
   },
-  "scripts": {
-    "build": "vp build"
-  },
+  "scripts": {},
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",
     "htmx.org": "2.0",
-    "hyperscript.org": "0.9",
+    "hyperscript.org": "^0.9",
     "tailwindcss": "^4.3.2",
-    "vite-plus": "0.3.3"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vite-plus": "1.4.0"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0"
   }
 }
